@@ -10,20 +10,15 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>ai</artifactId>
+    <artifactId>syncnote-ai</artifactId>
     <packaging>jar</packaging>
     <name>AI Module</name>
 
     <dependencies>
-        <!-- 依赖先留空，后面填充 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>
