@@ -1,5 +1,9 @@
 import { createApp } from 'vue'
-import './style.css'
+
+import router from './router'
+
 import App from './App.vue'
 
-createApp(App).mount('#app')
+const syncnote_app = createApp(App)
+syncnote_app.use(router)
+syncnote_app.mount('#app')
