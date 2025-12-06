@@ -12,7 +12,7 @@ on:
       - 'web_client/**'
 
 jobs:
-  test:
+  build-frontend:
     name: Run Frontend Tests
     runs-on: ubuntu-latest
 
