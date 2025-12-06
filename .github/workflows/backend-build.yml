@@ -1,0 +1,44 @@
+name: Backend Test
+
+# 触发条件：PR 到 main / develop 分支时执行
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+    # 只在后端文件有变动时才运行
+    paths:
+      - 'server/**'
+
+jobs:
+  build-backend:
+    name: Build and Test Spring Boot
+    runs-on: ubuntu-latest
+
+    # 所有 run 命令默认都在 ./server 目录下执行
+    defaults:
+      run:
+        working-directory: ./server 
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 设置 JDK 环境（推荐使用 Temurin，并且开启 Maven 缓存）
+      - name: Set up JDK 21 & Cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          # 开启内置的 Maven 仓库缓存，路径自动指向 ~/.m2/repository
+          cache: 'maven' 
+          # 缓存依赖路径指向多模块父 pom.xml 
+          cache-dependency-path: 'server/pom.xml' 
+
+      # 3. 运行构建、测试和验证流程
+      # 使用 'verify' 命令：它会执行编译、单元测试，并确保构建通过。
+      # 只有所有测试通过，才会成功完成。
+      - name: Run Build and Tests
+        run: mvn clean verify
