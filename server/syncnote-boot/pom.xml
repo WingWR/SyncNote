@@ -40,6 +40,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- 引用工具模块 -->
+        <dependency>
+            <groupId>com.syncnote</groupId>
+            <artifactId>syncnote-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
