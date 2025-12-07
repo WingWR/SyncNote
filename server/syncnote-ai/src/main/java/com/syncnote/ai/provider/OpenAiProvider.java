@@ -1,58 +1,76 @@
 package com.syncnote.ai.provider;
 
 import com.syncnote.ai.config.AiProperties;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Mock provider for testing and demonstration
+ * OpenAI provider implementation using LangChain4j
  */
-public class MockProvider implements AiProvider {
+public class OpenAiProvider implements AiProvider {
     
-    private static final Logger logger = LoggerFactory.getLogger(MockProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpenAiProvider.class);
     
     private final String modelId;
+    private final ChatLanguageModel chatModel;
     private final boolean enabled;
     
-    public MockProvider(AiProperties.ProviderConfig config) {
-        this.modelId = config.getModelId() != null ? config.getModelId() : "mock-model";
-        this.enabled = config.isEnabled();
+    public OpenAiProvider(AiProperties.ProviderConfig config) {
+        this.modelId = config.getModelId() != null ? config.getModelId() : "gpt-3.5-turbo";
+        this.enabled = config.isEnabled() && config.getApiKey() != null && !config.getApiKey().isEmpty();
         
         if (this.enabled) {
-            logger.info("Mock provider initialized with model: {}", this.modelId);
+            OpenAiChatModel.OpenAiChatModelBuilder builder = OpenAiChatModel.builder()
+                    .apiKey(config.getApiKey())
+                    .modelName(this.modelId);
+            
+            if (config.getEndpoint() != null && !config.getEndpoint().isEmpty()) {
+                builder.baseUrl(config.getEndpoint());
+            }
+            
+            this.chatModel = builder.build();
+            logger.info("OpenAI provider initialized with model: {}", this.modelId);
+        } else {
+            this.chatModel = null;
+            logger.warn("OpenAI provider is disabled or not configured");
         }
     }
     
     @Override
     public String rewriteContinue(String context, String prompt) {
         if (!enabled) {
-            throw new IllegalStateException("Mock provider is not enabled");
+            throw new IllegalStateException("OpenAI provider is not enabled");
         }
         
-        return "[MOCK CONTINUE] Based on: " + (context != null ? context.substring(0, Math.min(50, context.length())) : "empty context") + "...";
+        String fullPrompt = buildContinuePrompt(context, prompt);
+        return chatModel.generate(fullPrompt);
     }
     
     @Override
     public String rewritePolish(String context, String prompt) {
         if (!enabled) {
-            throw new IllegalStateException("Mock provider is not enabled");
+            throw new IllegalStateException("OpenAI provider is not enabled");
         }
         
-        return "[MOCK POLISH] Polished version of: " + (context != null ? context.substring(0, Math.min(50, context.length())) : "empty context") + "...";
+        String fullPrompt = buildPolishPrompt(context, prompt);
+        return chatModel.generate(fullPrompt);
     }
     
     @Override
     public String qa(String context, String message) {
         if (!enabled) {
-            throw new IllegalStateException("Mock provider is not enabled");
+            throw new IllegalStateException("OpenAI provider is not enabled");
         }
         
-        return "[MOCK QA] Answer to '" + (message != null ? message : "no question") + "': This is a mock response.";
+        String fullPrompt = buildQaPrompt(context, message);
+        return chatModel.generate(fullPrompt);
     }
     
     @Override
     public String getProviderId() {
-        return "mock";
+        return "openai";
     }
     
     @Override
@@ -63,5 +81,34 @@ public class MockProvider implements AiProvider {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+    
+    private String buildContinuePrompt(String context, String prompt) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Continue writing the following text without altering the prior content. ");
+        if (prompt != null && !prompt.isEmpty()) {
+            sb.append(prompt).append("\n\n");
+        }
+        sb.append("Context:\n").append(context != null ? context : "");
+        return sb.toString();
+    }
+    
+    private String buildPolishPrompt(String context, String prompt) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Lightly polish and improve the following text. Keep the original meaning and structure. ");
+        if (prompt != null && !prompt.isEmpty()) {
+            sb.append(prompt).append("\n\n");
+        }
+        sb.append("Text to polish:\n").append(context != null ? context : "");
+        return sb.toString();
+    }
+    
+    private String buildQaPrompt(String context, String message) {
+        StringBuilder sb = new StringBuilder();
+        if (context != null && !context.isEmpty()) {
+            sb.append("Context:\n").append(context).append("\n\n");
+        }
+        sb.append("Question: ").append(message != null ? message : "");
+        return sb.toString();
     }
 }

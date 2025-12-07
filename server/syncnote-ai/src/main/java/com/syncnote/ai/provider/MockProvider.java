@@ -1,55 +1,67 @@
 package com.syncnote.ai.provider;
 
+import com.syncnote.ai.config.AiProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Interface for AI provider operations
+ * Mock provider for testing and demonstration
  */
-public interface AiProvider {
+public class MockProvider implements AiProvider {
     
-    /**
-     * Continue writing without altering prior content
-     * 
-     * @param context The existing content
-     * @param prompt Additional prompt/instruction
-     * @return The continued text
-     */
-    String rewriteContinue(String context, String prompt);
+    private static final Logger logger = LoggerFactory.getLogger(MockProvider.class);
     
-    /**
-     * Lightly polish existing content
-     * 
-     * @param context The content to polish
-     * @param prompt Additional prompt/instruction
-     * @return The polished text
-     */
-    String rewritePolish(String context, String prompt);
+    private final String modelId;
+    private final boolean enabled;
     
-    /**
-     * Answer questions without mutating the document (chat-only)
-     * 
-     * @param context Document context (optional)
-     * @param message The question to answer
-     * @return The answer
-     */
-    String qa(String context, String message);
+    public MockProvider(AiProperties.ProviderConfig config) {
+        this.modelId = config.getModelId() != null ? config.getModelId() : "mock-model";
+        this.enabled = config.isEnabled();
+        
+        if (this.enabled) {
+            logger.info("Mock provider initialized with model: {}", this.modelId);
+        }
+    }
     
-    /**
-     * Get the provider identifier
-     * 
-     * @return The provider name
-     */
-    String getProviderId();
+    @Override
+    public String rewriteContinue(String context, String prompt) {
+        if (!enabled) {
+            throw new IllegalStateException("Mock provider is not enabled");
+        }
+        
+        return "[MOCK CONTINUE] Based on: " + (context != null ? context.substring(0, Math.min(50, context.length())) : "empty context") + "...";
+    }
     
-    /**
-     * Get the model identifier
-     * 
-     * @return The model ID
-     */
-    String getModelId();
+    @Override
+    public String rewritePolish(String context, String prompt) {
+        if (!enabled) {
+            throw new IllegalStateException("Mock provider is not enabled");
+        }
+        
+        return "[MOCK POLISH] Polished version of: " + (context != null ? context.substring(0, Math.min(50, context.length())) : "empty context") + "...";
+    }
     
-    /**
-     * Check if the provider is enabled/configured
-     * 
-     * @return true if enabled, false otherwise
-     */
-    boolean isEnabled();
+    @Override
+    public String qa(String context, String message) {
+        if (!enabled) {
+            throw new IllegalStateException("Mock provider is not enabled");
+        }
+        
+        return "[MOCK QA] Answer to '" + (message != null ? message : "no question") + "': This is a mock response.";
+    }
+    
+    @Override
+    public String getProviderId() {
+        return "mock";
+    }
+    
+    @Override
+    public String getModelId() {
+        return modelId;
+    }
+    
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 }
