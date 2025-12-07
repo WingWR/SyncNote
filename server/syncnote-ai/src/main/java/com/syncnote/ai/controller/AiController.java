@@ -18,6 +18,10 @@ import java.util.Map;
 
 /**
  * REST controller for AI operations
+ * 
+ * Note: Security (Bearer token authentication) should be configured
+ * at the application level in the Boot module's security configuration.
+ * These endpoints are designed to work with the existing security conventions.
  */
 @RestController
 @RequestMapping("/api/ai")

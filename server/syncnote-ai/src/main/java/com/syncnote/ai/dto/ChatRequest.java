@@ -1,7 +1,6 @@
 package com.syncnote.ai.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 /**
  * Request DTO for AI chat endpoint
