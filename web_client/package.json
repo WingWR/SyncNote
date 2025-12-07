@@ -9,14 +9,28 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tiptap/core": "^2.1.13",
+    "@tiptap/extension-collaboration": "^2.1.13",
+    "@tiptap/extension-collaboration-cursor": "^2.1.13",
+    "@tiptap/pm": "^2.1.13",
+    "@tiptap/starter-kit": "^2.1.13",
+    "@tiptap/vue-3": "^2.1.13",
+    "axios": "^1.6.2",
     "lucide-vue-next": "^0.555.0",
+    "pinia": "^2.1.7",
     "vue": "^3.5.24",
-    "vue-router": "^4.6.3"
+    "vue-router": "^4.6.3",
+    "y-protocols": "^1.0.6",
+    "y-websocket": "^1.5.0",
+    "yjs": "^13.6.8"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
     "typescript": "~5.9.3",
     "vite": "npm:rolldown-vite@7.2.5",
     "vue-tsc": "^3.1.4"
