@@ -26,6 +26,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 1.5. 赋予 mvnw 脚本执行权限
+      - name: Grant execute permission for mvnw
+        # 'server' 是您的 working-directory，所以脚本路径是 ./mvnw
+        run: chmod +x ./mvnw
+
       # 2. 设置 JDK 环境（推荐使用 Temurin，并且开启 Maven 缓存）
       - name: Set up JDK 21 & Cache
         uses: actions/setup-java@v4
