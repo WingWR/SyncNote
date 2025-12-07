@@ -41,4 +41,4 @@ jobs:
       # 使用 'verify' 命令：它会执行编译、单元测试，并确保构建通过。
       # 只有所有测试通过，才会成功完成。
       - name: Run Build and Tests
-        run: mvn clean verify
+        run: ./mvnw clean verify
