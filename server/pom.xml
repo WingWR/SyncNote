@@ -17,6 +17,7 @@
         <module>syncnote-boot</module>
         <module>syncnote-user</module>
         <module>syncnote-document</module>
+        <module>syncnote-util</module>
     </modules>
 
     <!-- 统一管理Spring Boot版本 -->
