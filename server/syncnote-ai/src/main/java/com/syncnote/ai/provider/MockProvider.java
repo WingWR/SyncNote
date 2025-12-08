@@ -16,20 +16,24 @@ public class MockProvider implements AiProvider {
     private final String modelId;
     private final boolean enabled;
 
+    /**
+     * Spring 使用的构造函数：从 AiProperties 中读取 "mock" 配置
+     */
     public MockProvider(AiProperties aiProperties) {
-        AiProperties.ProviderConfig config = aiProperties.getProviders().get("mock");
-        if (config == null) {
-            this.modelId = "mock-model";
-            this.enabled = false;
-            logger.warn("Mock provider config not found; provider disabled");
-            return;
-        }
+        this(aiProperties != null ? aiProperties.getProviders().get("mock") : null);
+    }
 
-        this.modelId = config.getModelId() != null ? config.getModelId() : "mock-model";
-        this.enabled = config.isEnabled();
+    /**
+     * 便于单测的构造函数：直接传入 ProviderConfig
+     */
+    MockProvider(AiProperties.ProviderConfig config) {
+        this.modelId = config != null && config.getModelId() != null ? config.getModelId() : "mock-model";
+        this.enabled = config != null && config.isEnabled();
 
         if (this.enabled) {
             logger.info("Mock provider initialized with model: {}", this.modelId);
+        } else {
+            logger.warn("Mock provider is disabled or no config provided");
         }
     }
 

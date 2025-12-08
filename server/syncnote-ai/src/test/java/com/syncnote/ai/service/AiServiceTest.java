@@ -17,10 +17,10 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for AiService
  */
 class AiServiceTest {
-    
+
     private AiService aiService;
     private ProviderRegistry providerRegistry;
-    
+
     @BeforeEach
     void setUp() {
         AiProperties aiProperties = new AiProperties();
@@ -28,11 +28,12 @@ class AiServiceTest {
         mockConfig.setEnabled(true);
         mockConfig.setModelId("test-model");
         aiProperties.getProviders().put("mock", mockConfig);
-        
-        providerRegistry = new ProviderRegistry(aiProperties);
+
+        MockProvider mockProvider = new MockProvider(aiProperties);
+        providerRegistry = new ProviderRegistry(List.of(mockProvider));
         aiService = new AiService(providerRegistry);
     }
-    
+
     @Test
     void testProcessChatWithContinueMode() {
         ChatRequest request = new ChatRequest();
@@ -40,104 +41,101 @@ class AiServiceTest {
         request.setMode("continue");
         request.setContext("Some context");
         request.setMessage("Continue writing");
-        
+
         ChatResponse response = aiService.processChat(request);
-        
+
         assertNotNull(response);
         assertNotNull(response.getMessage());
         assertTrue(response.getMessage().contains("MOCK CONTINUE"));
     }
-    
+
     @Test
     void testProcessChatWithPolishMode() {
         ChatRequest request = new ChatRequest();
         request.setModelId("test-model");
         request.setMode("polish");
         request.setContext("Text to polish");
-        
+
         ChatResponse response = aiService.processChat(request);
-        
+
         assertNotNull(response);
         assertNotNull(response.getMessage());
         assertTrue(response.getMessage().contains("MOCK POLISH"));
     }
-    
+
     @Test
     void testProcessChatWithQaMode() {
         ChatRequest request = new ChatRequest();
         request.setModelId("test-model");
         request.setMode("chat");
         request.setMessage("What is this?");
-        
+
         ChatResponse response = aiService.processChat(request);
-        
+
         assertNotNull(response);
         assertNotNull(response.getMessage());
         assertTrue(response.getMessage().contains("MOCK QA"));
     }
-    
+
     @Test
     void testProcessChatWithInvalidModelId() {
         ChatRequest request = new ChatRequest();
         request.setModelId("invalid-model");
-        request.setMode("chat");
-        
-        assertThrows(IllegalArgumentException.class, () -> 
-            aiService.processChat(request)
-        );
+        request.setMode("continue");
+        request.setContext("Some context");
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> aiService.processChat(request));
+        assertTrue(ex.getMessage().contains("Invalid model ID"));
     }
-    
+
     @Test
     void testProcessChatWithInvalidMode() {
         ChatRequest request = new ChatRequest();
         request.setModelId("test-model");
         request.setMode("invalid-mode");
-        
-        assertThrows(IllegalArgumentException.class, () -> 
-            aiService.processChat(request)
-        );
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> aiService.processChat(request));
+        assertTrue(ex.getMessage().contains("Invalid mode"));
     }
-    
+
     @Test
     void testGetAvailableModels() {
         List<ModelInfo> models = aiService.getAvailableModels();
-        
+
         assertNotNull(models);
-        assertFalse(models.isEmpty());
-        
-        ModelInfo model = models.get(0);
-        assertEquals("test-model", model.getId());
-        assertEquals("mock", model.getProvider());
+        assertEquals(1, models.size());
+        assertEquals("test-model", models.get(0).getModelId());
+        assertEquals("mock", models.get(0).getProviderId());
     }
-    
+
     @Test
     void testModeAliases() {
-        // Test rewrite-continue alias
+        // rewrite-continue alias
         ChatRequest request1 = new ChatRequest();
         request1.setModelId("test-model");
         request1.setMode("rewrite-continue");
         request1.setContext("context");
-        
+
         ChatResponse response1 = aiService.processChat(request1);
         assertNotNull(response1);
         assertTrue(response1.getMessage().contains("MOCK CONTINUE"));
-        
-        // Test rewrite-polish alias
+
+        // rewrite-polish alias
         ChatRequest request2 = new ChatRequest();
         request2.setModelId("test-model");
         request2.setMode("rewrite-polish");
         request2.setContext("context");
-        
+
         ChatResponse response2 = aiService.processChat(request2);
         assertNotNull(response2);
         assertTrue(response2.getMessage().contains("MOCK POLISH"));
-        
-        // Test agent alias
+
+        // agent alias
         ChatRequest request3 = new ChatRequest();
         request3.setModelId("test-model");
         request3.setMode("agent");
         request3.setMessage("question");
-        
+
         ChatResponse response3 = aiService.processChat(request3);
         assertNotNull(response3);
         assertTrue(response3.getMessage().contains("MOCK QA"));
