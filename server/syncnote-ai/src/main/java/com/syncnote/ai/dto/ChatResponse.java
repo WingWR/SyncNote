@@ -1,8 +1,9 @@
 package com.syncnote.ai.dto;
-
+import lombok.Data;
 /**
  * Response DTO for AI chat endpoint
  */
+@Data
 public class ChatResponse {
     
     private String message;
@@ -16,19 +17,5 @@ public class ChatResponse {
         this.context = context;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getContext() {
-        return context;
-    }
-
-    public void setContext(String context) {
-        this.context = context;
-    }
+   
 }
