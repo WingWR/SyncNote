@@ -1,3 +1,6 @@
 # 编辑器信息
 .idea/
 .vscode/
+
+# spring boot
+.mvn
