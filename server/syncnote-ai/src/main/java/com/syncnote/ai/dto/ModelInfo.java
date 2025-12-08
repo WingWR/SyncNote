@@ -1,8 +1,9 @@
 package com.syncnote.ai.dto;
-
+import lombok.Data;
 /**
  * Model information DTO
  */
+@Data
 public class ModelInfo {
     
     private String id;
@@ -18,27 +19,4 @@ public class ModelInfo {
         this.provider = provider;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
 }

@@ -1,11 +1,12 @@
 package com.syncnote.ai.dto;
-
+import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
  * Request DTO for AI chat endpoint
  */
+@Data
 public class ChatRequest {
     
     @NotBlank(message = "Model ID is required")
@@ -28,46 +29,6 @@ public class ChatRequest {
         this.mode = mode;
         this.message = message;
         this.context = context;
-        this.documentId = documentId;
-    }
-
-    public String getModelId() {
-        return modelId;
-    }
-
-    public void setModelId(String modelId) {
-        this.modelId = modelId;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
-    public void setMode(String mode) {
-        this.mode = mode;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getContext() {
-        return context;
-    }
-
-    public void setContext(String context) {
-        this.context = context;
-    }
-
-    public String getDocumentId() {
-        return documentId;
-    }
-
-    public void setDocumentId(String documentId) {
         this.documentId = documentId;
     }
 }

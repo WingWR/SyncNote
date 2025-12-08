@@ -1,10 +1,11 @@
 package com.syncnote.ai.dto;
 
 import java.util.List;
-
+import lombok.Data;
 /**
  * Response DTO for model list endpoint
  */
+@Data
 public class ModelListResponse {
     
     private List<ModelInfo> models;
@@ -16,11 +17,4 @@ public class ModelListResponse {
         this.models = models;
     }
 
-    public List<ModelInfo> getModels() {
-        return models;
-    }
-
-    public void setModels(List<ModelInfo> models) {
-        this.models = models;
-    }
 }
