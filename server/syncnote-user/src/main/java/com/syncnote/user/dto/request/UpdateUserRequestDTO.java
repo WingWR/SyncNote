@@ -1,9 +1,9 @@
-package com.syncnote.user.dto.response;
+package com.syncnote.user.dto.request;
 
 import lombok.Data;
 
 @Data
-public class UpdateUserDTO {
+public class UpdateUserRequestDTO {
     private String username;
     private String avatar;
 }

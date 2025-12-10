@@ -1,9 +1,9 @@
 package com.syncnote.user.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.syncnote.user.dto.request.LoginDTO;
+import com.syncnote.user.dto.request.LoginRequestDTO;
 import com.syncnote.user.dto.response.LoginResponseDTO;
-import com.syncnote.user.dto.request.RegisterDTO;
+import com.syncnote.user.dto.request.RegisterRequestDTO;
 import com.syncnote.user.mapper.UserMapper;
 import com.syncnote.user.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ public class AuthService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    public User register(RegisterDTO dto) throws Exception {
+    public User register(RegisterRequestDTO dto) throws Exception {
         if(userMapper.selectOne(new QueryWrapper<User>().eq("email", dto.getEmail())) != null){
             throw new Exception("邮箱已被注册");
         }
@@ -34,7 +34,6 @@ public class AuthService {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
-        user.setAvatar(dto.getAvatar());
 
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPasswordHash(hashedPassword);
@@ -43,7 +42,7 @@ public class AuthService {
         return user;
     }
 
-    public LoginResponseDTO login(LoginDTO dto) throws Exception {
+    public LoginResponseDTO login(LoginRequestDTO dto) throws Exception {
         User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", dto.getEmail()));
         if(user == null) throw new Exception("用户不存在");
 
