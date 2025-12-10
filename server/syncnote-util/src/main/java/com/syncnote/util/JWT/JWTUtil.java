@@ -53,13 +53,13 @@ public class JWTUtil {
                     .setSigningKey(Keys.hmacShaKeyFor(properties.getSecretKey().getBytes()))
                     .build()
                     .parseClaimsJws(token);
-
-            // 检查Token是否真的存在Redis里
-            Object userId = redisTemplate.opsForValue().get(properties.getRedisPrefix() + token);
-            return userId != null;
         } catch (JwtException e) {
             return false;
         }
+
+        // 检查 token 是否存在于 Redis
+        String redisKey = properties.getRedisPrefix() + token;
+        return redisTemplate.hasKey(redisKey);
     }
 
     // 让Token失效
