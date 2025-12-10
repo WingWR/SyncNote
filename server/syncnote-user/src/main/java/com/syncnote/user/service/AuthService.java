@@ -24,7 +24,7 @@ public class AuthService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    public void register(RegisterRequestDTO dto) throws Exception {
+    public void register(RegisterRequestDTO dto) {
         // 检查邮箱可用性
         if(userMapper.selectOne(new QueryWrapper<User>().eq("email", dto.getEmail())) != null){
             throw new RuntimeException("该邮箱已被注册");
@@ -43,7 +43,7 @@ public class AuthService {
         userMapper.insert(user);
     }
 
-    public LoginResponseDTO login(LoginRequestDTO dto) throws Exception {
+    public LoginResponseDTO login(LoginRequestDTO dto) {
         User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", dto.getEmail()));
         if(user == null) throw new RuntimeException("该用户不存在");
 
