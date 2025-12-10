@@ -4,15 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.syncnote.user.dto.request.LoginRequestDTO;
 import com.syncnote.user.dto.response.LoginResponseDTO;
 import com.syncnote.user.dto.request.RegisterRequestDTO;
+import com.syncnote.user.dto.response.UserResponseOfLoginInfo;
 import com.syncnote.user.mapper.UserMapper;
 import com.syncnote.user.model.User;
+import com.syncnote.util.JWT.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthService {
@@ -21,10 +19,10 @@ public class AuthService {
     private UserMapper userMapper;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private JWTUtil jwtUtil;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private BCryptPasswordEncoder passwordEncoder;
 
     public void register(RegisterRequestDTO dto) throws Exception {
         // 检查邮箱可用性
@@ -47,20 +45,25 @@ public class AuthService {
 
     public LoginResponseDTO login(LoginRequestDTO dto) throws Exception {
         User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", dto.getEmail()));
-        if(user == null) throw new RuntimeException("用户不存在");
+        if(user == null) throw new RuntimeException("该用户不存在");
 
         boolean isPasswordMatch = passwordEncoder.matches(dto.getPassword(), user.getPasswordHash());
-
         if(!isPasswordMatch){
-            throw new RuntimeException("密码错误");
+            throw new RuntimeException("输入密码错误");
         }
 
-        // 简单示例，token 可以是随机 UUID，生产用 JWT
-        String token = UUID.randomUUID().toString();
+        String token = jwtUtil.generateToken(user.getId());
 
-        Long userId = user.getId();
-        redisTemplate.opsForValue().set(token, userId, 12, TimeUnit.HOURS);
+        return new LoginResponseDTO(
+                new UserResponseOfLoginInfo(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getAvatar(),
+                    user.getCreatedAt()
+                ),
 
-        return new LoginResponseDTO(user, token);
+                token
+        );
     }
 }
