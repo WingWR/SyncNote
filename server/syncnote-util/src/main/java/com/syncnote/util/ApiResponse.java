@@ -10,7 +10,7 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> succeed(String message) {
         ApiResponse<T> response = new ApiResponse<>();
-        response.setCode(400);
+        response.setCode(200);
         response.setMessage(message);
         response.setData(null);
         return response;
@@ -18,7 +18,7 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> succeed(T data, String message) {
         ApiResponse<T> response = new ApiResponse<>();
-        response.setCode(400);
+        response.setCode(200);
         response.setMessage(message);
         response.setData(data);
         return response;
