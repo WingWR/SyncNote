@@ -1,4 +1,4 @@
-package com.syncnote.user.dto;
+package com.syncnote.user.dto.response;
 
 import com.syncnote.user.model.User;
 import lombok.AllArgsConstructor;

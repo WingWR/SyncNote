@@ -1,13 +1,11 @@
-package com.syncnote.user.dto;
+package com.syncnote.user.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class RegisterDTO {
-    @NotBlank
-    private String username;
+public class LoginDTO {
 
     @Email
     @NotBlank
@@ -15,6 +13,4 @@ public class RegisterDTO {
 
     @NotBlank
     private String password;
-
-    private String avatar;
 }
