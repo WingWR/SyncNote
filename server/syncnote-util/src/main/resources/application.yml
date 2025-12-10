@@ -1,9 +1,10 @@
 jwt:
   # Token 密码
-  secret-key: " dsaiuohdsafbdsjkfd23762163jifbd2"
+  secret-key: "dsaiuohdsafbdsjkfd23762163jifbd2"
 
   # Token持续时间——12小时
   expiration-ms: 43200000
 
-
+  # Token前缀
+  redis-prefix: "TOKEN:"
 
