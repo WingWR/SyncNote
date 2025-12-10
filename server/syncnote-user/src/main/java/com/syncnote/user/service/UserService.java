@@ -1,31 +1,58 @@
 package com.syncnote.user.service;
 
-import com.syncnote.user.dto.request.UpdateUserRequestDTO;
+import com.syncnote.user.dto.response.UpdateUserResponseDTO;
+import com.syncnote.user.dto.response.UserResponseOfLoginInfo;
 import com.syncnote.user.mapper.UserMapper;
 import com.syncnote.user.model.User;
+import com.syncnote.util.JWT.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 @Service
 public class UserService {
+
+    @Autowired
+    private JWTUtil jwtUtil;
+
     @Autowired
     private UserMapper userMapper;
 
-    public User getCurrentUser(long userId){
-        return userMapper.selectById(userId);
+    public UserResponseOfLoginInfo getCurrentUser(String token){
+        User user = getUserInfoFromToken(token);
+
+        return new UserResponseOfLoginInfo(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getAvatar(),
+                user.getCreatedAt()
+        );
     }
 
-    public User updateUserInfo(long userId, UpdateUserRequestDTO dto){
-        User user = userMapper.selectById(userId);
-        if(user == null) return null;
+    public void updateUserInfo(String token, UpdateUserResponseDTO dto){
+        getUserInfoFromToken(token);
+        User user = getUserInfoFromToken(token);
 
         if(dto.getUsername() != null) user.setUsername(dto.getUsername());
         if(dto.getAvatar() != null) user.setAvatar(dto.getAvatar());
 
         userMapper.updateById(user);
-        return user;
     }
 
+    // 从Token获取用户信息
+    private User getUserInfoFromToken(String token) {
+        if(!jwtUtil.validateToken(token)){
+            throw new RuntimeException("Token 信息无效");
+        }
 
+        Long userId = jwtUtil.getUserId(token);
+        User user = userMapper.selectById(userId);
+
+        if(user == null){
+            throw new NullPointerException("用户不存在");
+        }
+
+        return user;
+    }
 }
