@@ -5,6 +5,7 @@ import com.syncnote.user.dto.response.LoginResponseDTO;
 import com.syncnote.user.dto.request.RegisterRequestDTO;
 import com.syncnote.user.model.User;
 import com.syncnote.user.service.AuthService;
+import com.syncnote.util.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,8 +21,9 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public User register(@Valid @RequestBody RegisterRequestDTO dto) throws Exception {
-        return authService.register(dto);
+    public ApiResponse<User> register(@Valid @RequestBody RegisterRequestDTO dto) throws Exception {
+        authService.register(dto);
+        return ApiResponse.succeed("用户注册成功~");
     }
 
     @PostMapping("/login")

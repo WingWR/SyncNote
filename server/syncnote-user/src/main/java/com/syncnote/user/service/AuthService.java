@@ -18,38 +18,41 @@ import java.util.concurrent.TimeUnit;
 public class AuthService {
 
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @Autowired
-    BCryptPasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    public User register(RegisterRequestDTO dto) throws Exception {
+    public void register(RegisterRequestDTO dto) throws Exception {
+        // 检查邮箱可用性
         if(userMapper.selectOne(new QueryWrapper<User>().eq("email", dto.getEmail())) != null){
-            throw new Exception("邮箱已被注册");
+            throw new RuntimeException("该邮箱已被注册");
         }
 
+        // 创建新用户
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
 
+        // 使用BCrypt加密
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPasswordHash(hashedPassword);
 
+        // 插入至数据库
         userMapper.insert(user);
-        return user;
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) throws Exception {
         User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", dto.getEmail()));
-        if(user == null) throw new Exception("用户不存在");
+        if(user == null) throw new RuntimeException("用户不存在");
 
         boolean isPasswordMatch = passwordEncoder.matches(dto.getPassword(), user.getPasswordHash());
 
         if(!isPasswordMatch){
-            throw new Exception("密码错误");
+            throw new RuntimeException("密码错误");
         }
 
         // 简单示例，token 可以是随机 UUID，生产用 JWT
