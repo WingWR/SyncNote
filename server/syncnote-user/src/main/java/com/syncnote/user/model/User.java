@@ -23,9 +23,6 @@ public class User {
     @JsonIgnore
     private String passwordHash;
 
-    @JsonIgnore
-    private String salt;
-
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 }
