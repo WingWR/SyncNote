@@ -2,7 +2,6 @@ package com.syncnote.user.controller;
 
 import com.syncnote.user.dto.response.UpdateUserResponseDTO;
 import com.syncnote.user.dto.response.UserResponseOfLoginInfo;
-import com.syncnote.user.model.User;
 import com.syncnote.user.service.UserService;
 import com.syncnote.util.ApiResponse;
 import jakarta.validation.Valid;
