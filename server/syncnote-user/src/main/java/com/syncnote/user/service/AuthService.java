@@ -1,9 +1,9 @@
 package com.syncnote.user.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.syncnote.user.dto.LoginDTO;
-import com.syncnote.user.dto.LoginResponseDTO;
-import com.syncnote.user.dto.RegisterDTO;
+import com.syncnote.user.dto.request.LoginDTO;
+import com.syncnote.user.dto.response.LoginResponseDTO;
+import com.syncnote.user.dto.request.RegisterDTO;
 import com.syncnote.user.mapper.UserMapper;
 import com.syncnote.user.model.User;
 import org.springframework.beans.factory.annotation.Autowired;

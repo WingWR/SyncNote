@@ -1,8 +1,8 @@
 package com.syncnote.user.controller;
 
-import com.syncnote.user.dto.LoginDTO;
-import com.syncnote.user.dto.LoginResponseDTO;
-import com.syncnote.user.dto.RegisterDTO;
+import com.syncnote.user.dto.request.LoginDTO;
+import com.syncnote.user.dto.response.LoginResponseDTO;
+import com.syncnote.user.dto.request.RegisterDTO;
 import com.syncnote.user.model.User;
 import com.syncnote.user.service.AuthService;
 import jakarta.validation.Valid;

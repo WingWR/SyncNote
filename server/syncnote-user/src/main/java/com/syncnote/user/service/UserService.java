@@ -1,6 +1,6 @@
 package com.syncnote.user.service;
 
-import com.syncnote.user.dto.UpdateUserDTO;
+import com.syncnote.user.dto.response.UpdateUserDTO;
 import com.syncnote.user.mapper.UserMapper;
 import com.syncnote.user.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
