@@ -27,7 +27,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody LoginRequestDTO dto) throws Exception {
-        return authService.login(dto);
+    public ApiResponse<LoginResponseDTO> login(@RequestBody LoginRequestDTO dto) throws Exception {
+        LoginResponseDTO loginResponseDTO = authService.login(dto);
+        return ApiResponse.succeed(loginResponseDTO, "用户登陆成功~");
     }
 }
