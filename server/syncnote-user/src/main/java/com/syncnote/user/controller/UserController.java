@@ -1,6 +1,6 @@
 package com.syncnote.user.controller;
 
-import com.syncnote.user.dto.response.UpdateUserDTO;
+import com.syncnote.user.dto.request.UpdateUserRequestDTO;
 import com.syncnote.user.model.User;
 import com.syncnote.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ public class UserController {
 
     @PutMapping("/me")
     public User updateCurrentUser(@RequestHeader("X-User-Id") Long userId,
-                                  @RequestBody UpdateUserDTO dto) {
+                                  @RequestBody UpdateUserRequestDTO dto) {
         return userService.updateUserInfo(userId, dto);
     }
 }

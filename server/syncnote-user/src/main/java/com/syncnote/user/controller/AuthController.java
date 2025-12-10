@@ -1,8 +1,8 @@
 package com.syncnote.user.controller;
 
-import com.syncnote.user.dto.request.LoginDTO;
+import com.syncnote.user.dto.request.LoginRequestDTO;
 import com.syncnote.user.dto.response.LoginResponseDTO;
-import com.syncnote.user.dto.request.RegisterDTO;
+import com.syncnote.user.dto.request.RegisterRequestDTO;
 import com.syncnote.user.model.User;
 import com.syncnote.user.service.AuthService;
 import jakarta.validation.Valid;
@@ -20,12 +20,12 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public User register(@Valid @RequestBody RegisterDTO dto) throws Exception {
+    public User register(@Valid @RequestBody RegisterRequestDTO dto) throws Exception {
         return authService.register(dto);
     }
 
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody LoginDTO dto) throws Exception {
+    public LoginResponseDTO login(@RequestBody LoginRequestDTO dto) throws Exception {
         return authService.login(dto);
     }
 }

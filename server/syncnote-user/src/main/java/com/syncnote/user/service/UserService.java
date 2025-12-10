@@ -1,6 +1,6 @@
 package com.syncnote.user.service;
 
-import com.syncnote.user.dto.response.UpdateUserDTO;
+import com.syncnote.user.dto.request.UpdateUserRequestDTO;
 import com.syncnote.user.mapper.UserMapper;
 import com.syncnote.user.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ public class UserService {
         return userMapper.selectById(userId);
     }
 
-    public User updateUserInfo(long userId, UpdateUserDTO dto){
+    public User updateUserInfo(long userId, UpdateUserRequestDTO dto){
         User user = userMapper.selectById(userId);
         if(user == null) return null;
 
