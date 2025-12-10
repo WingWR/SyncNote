@@ -43,6 +43,7 @@ public class AuthService {
         userMapper.insert(user);
     }
 
+    // 用户登录的逻辑
     public LoginResponseDTO login(LoginRequestDTO dto) {
         User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", dto.getEmail()));
         if(user == null) throw new RuntimeException("该用户不存在");
@@ -66,4 +67,15 @@ public class AuthService {
                 token
         );
     }
+
+    // 用户退出登录
+    public void logout(String token){
+        if(!jwtUtil.validateToken(token)){
+            throw new RuntimeException("Token信息无效");
+        }
+
+        // 删除Token在Redis的缓存
+        jwtUtil.invalidateToken(token);
+    }
+
 }
