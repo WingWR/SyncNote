@@ -3,7 +3,7 @@ package com.syncnote.ai.controller;
 import com.syncnote.ai.dto.ChatRequest;
 import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
-import com.syncnote.ai.service.AiService;
+import com.syncnote.ai.service.IAIService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -18,11 +18,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/ai")
 @Validated
-public class AiController {
+public class AIController {
 
-    private final AiService aiService;
+    private final IAIService aiService;
 
-    public AiController(AiService aiService) {
+    public AIController(IAIService aiService) {
         this.aiService = aiService;
     }
 

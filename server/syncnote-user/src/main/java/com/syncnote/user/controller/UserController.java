@@ -2,7 +2,7 @@ package com.syncnote.user.controller;
 
 import com.syncnote.user.dto.response.UpdateUserResponseDTO;
 import com.syncnote.user.dto.response.UserResponseOfLoginInfo;
-import com.syncnote.user.service.UserService;
+import com.syncnote.user.service.IUserService;
 import com.syncnote.util.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @PostMapping("/me")
     public ApiResponse<UserResponseOfLoginInfo> getCurrentUser(@RequestHeader("Authorization") String authHeader){

@@ -4,7 +4,7 @@ import com.syncnote.user.dto.request.LoginRequestDTO;
 import com.syncnote.user.dto.response.LoginResponseDTO;
 import com.syncnote.user.dto.request.RegisterRequestDTO;
 import com.syncnote.user.model.User;
-import com.syncnote.user.service.AuthService;
+import com.syncnote.user.service.IAuthService;
 import com.syncnote.util.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired
-    private AuthService authService;
+    private IAuthService authService;
 
     @PostMapping("/register")
     public ApiResponse<User> register(@Valid @RequestBody RegisterRequestDTO dto) {

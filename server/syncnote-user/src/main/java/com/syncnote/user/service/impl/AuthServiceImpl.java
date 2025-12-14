@@ -1,19 +1,20 @@
-package com.syncnote.user.service;
+package com.syncnote.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.syncnote.user.dto.request.LoginRequestDTO;
-import com.syncnote.user.dto.response.LoginResponseDTO;
 import com.syncnote.user.dto.request.RegisterRequestDTO;
+import com.syncnote.user.dto.response.LoginResponseDTO;
 import com.syncnote.user.dto.response.UserResponseOfLoginInfo;
 import com.syncnote.user.mapper.UserMapper;
 import com.syncnote.user.model.User;
+import com.syncnote.user.service.IAuthService;
 import com.syncnote.util.JWT.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AuthService {
+public class AuthServiceImpl implements IAuthService {
 
     @Autowired
     private UserMapper userMapper;
@@ -57,11 +58,11 @@ public class AuthService {
 
         return new LoginResponseDTO(
                 new UserResponseOfLoginInfo(
-                    user.getId(),
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getAvatar(),
-                    user.getCreatedAt()
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getAvatar(),
+                        user.getCreatedAt()
                 ),
 
                 token
@@ -70,12 +71,11 @@ public class AuthService {
 
     // 用户退出登录
     public void logout(String token){
-        if(!jwtUtil.validateToken(token)){
+        if(jwtUtil.isTokenInvalidOrInactive(token)){
             throw new RuntimeException("Token信息无效");
         }
 
         // 删除Token在Redis的缓存
         jwtUtil.invalidateToken(token);
     }
-
 }

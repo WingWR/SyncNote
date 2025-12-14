@@ -1,16 +1,16 @@
-package com.syncnote.user.service;
+package com.syncnote.user.service.impl;
 
 import com.syncnote.user.dto.response.UpdateUserResponseDTO;
 import com.syncnote.user.dto.response.UserResponseOfLoginInfo;
 import com.syncnote.user.mapper.UserMapper;
 import com.syncnote.user.model.User;
+import com.syncnote.user.service.IUserService;
 import com.syncnote.util.JWT.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 @Service
-public class UserService {
+public class UserServiceImpl implements IUserService {
 
     @Autowired
     private JWTUtil jwtUtil;
@@ -18,6 +18,7 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Override
     public UserResponseOfLoginInfo getCurrentUser(String token){
         User user = getUserInfoFromToken(token);
 
@@ -30,6 +31,7 @@ public class UserService {
         );
     }
 
+    @Override
     public void updateUserInfo(String token, UpdateUserResponseDTO dto){
         getUserInfoFromToken(token);
         User user = getUserInfoFromToken(token);
@@ -41,8 +43,9 @@ public class UserService {
     }
 
     // 从Token获取用户信息
-    private User getUserInfoFromToken(String token) {
-        if(!jwtUtil.validateToken(token)){
+    @Override
+    public User getUserInfoFromToken(String token) {
+        if(jwtUtil.isTokenInvalidOrInactive(token)){
             throw new RuntimeException("Token 信息无效");
         }
 
