@@ -71,7 +71,7 @@ public class AuthServiceImpl implements IAuthService {
 
     // 用户退出登录
     public void logout(String token){
-        if(!jwtUtil.validateToken(token)){
+        if(jwtUtil.isTokenInvalidOrInactive(token)){
             throw new RuntimeException("Token信息无效");
         }
 
