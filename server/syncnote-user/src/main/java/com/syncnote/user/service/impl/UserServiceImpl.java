@@ -45,7 +45,7 @@ public class UserServiceImpl implements IUserService {
     // 从Token获取用户信息
     @Override
     public User getUserInfoFromToken(String token) {
-        if(jwtUtil.isTokenInvalidOrInactive(token)){
+        if(jwtUtil.IsTokenInvalidOrInactive(token)){
             throw new RuntimeException("Token 信息无效");
         }
 

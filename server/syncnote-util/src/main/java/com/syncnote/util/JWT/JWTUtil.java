@@ -46,8 +46,8 @@ public class JWTUtil {
         return Long.parseLong(claims.getSubject());
     }
 
-    // 校验 token
-    public boolean validateToken(String token) {
+    // 校验 Token正确
+    public boolean IsTokenValidAndActive(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(Keys.hmacShaKeyFor(properties.getSecretKey().getBytes()))
@@ -60,6 +60,11 @@ public class JWTUtil {
         // 检查 token 是否存在于 Redis
         String redisKey = properties.getRedisPrefix() + token;
         return redisTemplate.hasKey(redisKey);
+    }
+
+    // 校验 Token正确
+    public boolean IsTokenInvalidOrInactive(String token) {
+        return !IsTokenValidAndActive(token);
     }
 
     // 让Token失效
