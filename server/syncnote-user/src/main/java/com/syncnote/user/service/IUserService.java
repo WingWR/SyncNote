@@ -4,7 +4,6 @@ import com.syncnote.user.dto.response.UpdateUserResponseDTO;
 import com.syncnote.user.dto.response.UserResponseOfLoginInfo;
 import com.syncnote.user.model.User;
 
-
 public interface IUserService {
 
     // 获得当前用户登录信息
