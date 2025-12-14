@@ -61,8 +61,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version> <!-- 使用最新稳定版本 -->
-            <scope>provided</scope> <!-- provided 或 compile -->
         </dependency>
 
     </dependencies>
