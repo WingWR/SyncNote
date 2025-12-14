@@ -4,21 +4,18 @@ import com.syncnote.user.dto.request.LoginRequestDTO;
 import com.syncnote.user.dto.response.LoginResponseDTO;
 import com.syncnote.user.dto.request.RegisterRequestDTO;
 import com.syncnote.user.model.User;
-import com.syncnote.user.service.AuthService;
+import com.syncnote.user.service.IAuthService;
 import com.syncnote.util.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
-    private AuthService authService;
+    private IAuthService authService;
 
     @PostMapping("/register")
     public ApiResponse<User> register(@Valid @RequestBody RegisterRequestDTO dto) {
@@ -30,5 +27,12 @@ public class AuthController {
     public ApiResponse<LoginResponseDTO> login(@RequestBody LoginRequestDTO dto) {
         LoginResponseDTO loginResponseDTO = authService.login(dto);
         return ApiResponse.succeed(loginResponseDTO, "用户登陆成功~");
+    }
+
+    @PostMapping("logout")
+    public ApiResponse<Void> logout(@RequestHeader String authHeader){
+        String token = authHeader.replace("Token:", "").trim();
+        authService.logout(token);
+        return ApiResponse.succeed("用户退出登录");
     }
 }

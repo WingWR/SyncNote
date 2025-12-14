@@ -6,9 +6,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class JWTUtil {
@@ -16,14 +18,22 @@ public class JWTUtil {
     @Autowired
     private JwtProperties properties;
 
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
     // 生成 token
     public String generateToken(Long userId) {
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setSubject(userId.toString())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + properties.getExpirationMs()))
                 .signWith(Keys.hmacShaKeyFor(properties.getSecretKey().getBytes()), SignatureAlgorithm.HS256)
                 .compact();
+
+        // 将Token存入Redis
+        redisTemplate.opsForValue().set(properties.getRedisPrefix() + token, userId, properties.getExpirationMs(), TimeUnit.MILLISECONDS);
+
+        return token;
     }
 
     // 解析 token
@@ -43,9 +53,17 @@ public class JWTUtil {
                     .setSigningKey(Keys.hmacShaKeyFor(properties.getSecretKey().getBytes()))
                     .build()
                     .parseClaimsJws(token);
-            return true;
         } catch (JwtException e) {
             return false;
         }
+
+        // 检查 token 是否存在于 Redis
+        String redisKey = properties.getRedisPrefix() + token;
+        return redisTemplate.hasKey(redisKey);
+    }
+
+    // 让Token失效
+    public void invalidateToken(String token) {
+        redisTemplate.delete(properties.getRedisPrefix() + token);
     }
 }
