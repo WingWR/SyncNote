@@ -39,20 +39,13 @@ public class AIServiceImpl implements IAIService {
         String message = request.getMessage();
         String context = request.getContext();
 
-        switch (mode.toLowerCase()) {
-            case "continue":
-            case "rewrite-continue":
-                return new ChatResponse(provider.rewriteContinue(context, message), context);
-            case "polish":
-            case "rewrite-polish":
-                return new ChatResponse(provider.rewritePolish(context, message), context);
-            case "chat":
-            case "qa":
-            case "agent":
-                return new ChatResponse(provider.qa(context, message), context);
-            default:
-                throw new IllegalArgumentException("Invalid mode: " + mode);
-        }
+        return switch (mode.toLowerCase()) {
+            case "continue", "rewrite-continue" ->
+                    new ChatResponse(provider.rewriteContinue(context, message), context);
+            case "polish", "rewrite-polish" -> new ChatResponse(provider.rewritePolish(context, message), context);
+            case "chat", "qa", "agent" -> new ChatResponse(provider.qa(context, message), context);
+            default -> throw new IllegalArgumentException("Invalid mode: " + mode);
+        };
     }
 
     /**
