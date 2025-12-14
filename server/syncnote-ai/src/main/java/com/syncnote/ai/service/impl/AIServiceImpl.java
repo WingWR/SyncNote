@@ -1,10 +1,11 @@
-package com.syncnote.ai.service;
+package com.syncnote.ai.service.impl;
 
 import com.syncnote.ai.dto.ChatRequest;
 import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
 import com.syncnote.ai.provider.AiProvider;
 import com.syncnote.ai.provider.ProviderRegistry;
+import com.syncnote.ai.service.IAIService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,23 +14,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Unified AI service for handling AI operations
- */
 @Service
-public class AiService {
+public class AIServiceImpl implements IAIService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AiService.class);
+    private static final Logger logger = LoggerFactory.getLogger(IAIService.class);
 
     private final ProviderRegistry providerRegistry;
 
-    public AiService(ProviderRegistry providerRegistry) {
+    public AIServiceImpl(ProviderRegistry providerRegistry) {
         this.providerRegistry = providerRegistry;
     }
 
     /**
      * Process a chat request
      */
+    @Override
     public ChatResponse processChat(ChatRequest request) {
         logger.debug("Processing chat request for model: {}", request.getModelId());
 
@@ -59,6 +58,7 @@ public class AiService {
     /**
      * Get list of available models
      */
+    @Override
     public List<ModelInfo> getAvailableModels() {
         logger.debug("Getting available models");
 

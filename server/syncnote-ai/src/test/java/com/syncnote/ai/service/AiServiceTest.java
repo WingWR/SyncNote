@@ -6,6 +6,7 @@ import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
 import com.syncnote.ai.provider.MockProvider;
 import com.syncnote.ai.provider.ProviderRegistry;
+import com.syncnote.ai.service.impl.AIServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,11 +15,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for AiService
+ * Unit tests for IAIService
  */
 class AiServiceTest {
 
-    private AiService aiService;
+    private IAIService aiService;
     private ProviderRegistry providerRegistry;
 
     @BeforeEach
@@ -31,7 +32,7 @@ class AiServiceTest {
 
         MockProvider mockProvider = new MockProvider(aiProperties);
         providerRegistry = new ProviderRegistry(List.of(mockProvider));
-        aiService = new AiService(providerRegistry);
+        aiService = new AIServiceImpl(providerRegistry);
     }
 
     @Test
