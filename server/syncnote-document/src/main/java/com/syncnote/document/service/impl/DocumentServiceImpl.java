@@ -12,8 +12,8 @@ import com.syncnote.document.model.Document;
 import com.syncnote.document.model.DocumentCollaborator;
 import com.syncnote.document.model.DocumentFileType;
 import com.syncnote.document.config.StorageConfigProvider;
-import com.syncnote.document.service.DocumentService;
-import com.syncnote.document.service.StorageService;
+import com.syncnote.document.service.IDocumentService;
+import com.syncnote.document.service.IStorageService;
 import com.syncnote.util.context.CurrentUserContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class DocumentServiceImpl implements DocumentService {
+public class DocumentServiceImpl implements IDocumentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
@@ -40,7 +40,7 @@ public class DocumentServiceImpl implements DocumentService {
     private DocumentCollaboratorMapper documentCollaboratorMapper;
     
     @Autowired
-    private StorageService storageService;
+    private IStorageService storageService;
 
     @Autowired
     private StorageConfigProvider storageConfigProvider;

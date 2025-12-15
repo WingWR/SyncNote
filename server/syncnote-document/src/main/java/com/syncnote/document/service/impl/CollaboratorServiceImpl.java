@@ -8,10 +8,10 @@ import com.syncnote.document.mapper.DocumentMapper;
 import com.syncnote.document.model.DocStatus;
 import com.syncnote.document.model.Document;
 import com.syncnote.document.model.DocumentCollaborator;
-import com.syncnote.document.service.CollaboratorService;
 import com.syncnote.util.context.CurrentUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.syncnote.document.service.ICollaboratorService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * 协作者服务实现类
  */
 @Service
-public class CollaboratorServiceImpl implements CollaboratorService {
+public class CollaboratorServiceImpl implements ICollaboratorService {
 
     @Autowired
     private DocumentCollaboratorMapper documentCollaboratorMapper;

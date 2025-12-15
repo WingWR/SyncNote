@@ -9,7 +9,7 @@ import java.time.Duration;
  * 开发环境：minIO
  * 生产环境:阿里云OSS
  */
-public interface StorageService {
+public interface IStorageService {
 
     /**
      * 上传文件到指定桶

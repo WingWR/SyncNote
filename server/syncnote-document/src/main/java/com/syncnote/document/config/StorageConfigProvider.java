@@ -15,7 +15,6 @@ public class StorageConfigProvider {
     private final OssConfig ossConfig;
     private final Environment environment;
 
-    @Autowired
     public StorageConfigProvider(MinioConfig minioConfig, OssConfig ossConfig, Environment environment) {
         this.minioConfig = minioConfig;
         this.ossConfig = ossConfig;

@@ -4,11 +4,11 @@ import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
 import com.syncnote.document.dto.response.DocumentListItemResponseDTO;
 import com.syncnote.document.dto.response.DocumentResponseDTO;
-import com.syncnote.document.service.DocumentService;
 import com.syncnote.util.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.syncnote.document.service.IDocumentService;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/document")
 public class DocumentController {
     @Autowired
-    private DocumentService documentService;
+    private IDocumentService documentService;
 
     /**
      * 3.1 获取文档列表

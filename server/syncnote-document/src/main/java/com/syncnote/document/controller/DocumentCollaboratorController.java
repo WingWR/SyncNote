@@ -1,11 +1,12 @@
 package com.syncnote.document.controller;
 
+
 import com.syncnote.document.dto.request.AddCollaboratorRequestDTO;
 import com.syncnote.document.dto.response.CollaboratorResponseDTO;
-import com.syncnote.document.service.CollaboratorService;
 import com.syncnote.util.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.syncnote.document.service.ICollaboratorService;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
 public class DocumentCollaboratorController {
 
     @Autowired
-    private CollaboratorService collaboratorService;
+    private ICollaboratorService collaboratorService;
 
     /**
      * 4.1 获取文档协作者列表

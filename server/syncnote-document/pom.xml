@@ -35,22 +35,10 @@
         </dependency>
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-annotation</artifactId>
-            <version>3.5.15</version>
-            <scope>compile</scope>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-core</artifactId>
-            <version>3.5.15</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.syncnote</groupId>
-            <artifactId>syncnote-util</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
+
+
         <!-- MinIO Java SDK -->
         <dependency>
             <groupId>io.minio</groupId>

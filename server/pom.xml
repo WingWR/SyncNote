@@ -41,9 +41,10 @@
             <!-- MyBatis-Plus -->
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus</artifactId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>3.5.15</version>
             </dependency>
+            
 
             <!-- MySQL 驱动 -->
             <dependency>

@@ -1,7 +1,7 @@
 package com.syncnote.document.service.impl;
 
+import com.syncnote.document.service.IStorageService;
 import com.syncnote.document.config.MinioConfig;
-import com.syncnote.document.service.StorageService;
 import io.minio.*;
 import io.minio.http.Method;
 import org.springframework.context.annotation.Profile;
@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Duration;
 @Service
 @Profile("dev")
-public class MinIOStorageServiceImpl implements StorageService {
+public class MinIOStorageServiceImpl implements IStorageService {
 
     private final MinioClient minioClient;
     private final String defaultBucket;

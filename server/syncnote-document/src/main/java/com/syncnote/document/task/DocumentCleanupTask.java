@@ -7,7 +7,7 @@ import com.syncnote.document.mapper.DocumentMapper;
 import com.syncnote.document.model.DocStatus;
 import com.syncnote.document.model.Document;
 import com.syncnote.document.model.DocumentCollaborator;
-import com.syncnote.document.service.StorageService;
+import com.syncnote.document.service.IStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ public class DocumentCleanupTask {
     private StorageConfigProvider storageConfigProvider;
 
     @Autowired
-    private StorageService storageService;
+    private IStorageService storageService;
 
     /**
      * 定时清理回收站中超过保留期的文档

@@ -12,7 +12,7 @@ import java.util.List;
  * 文档服务
  * 提供CRUD服务
  */
-public interface DocumentService {
+public interface IDocumentService {
     /**
      * 获取文档列表
      * @param token 用户认证令牌

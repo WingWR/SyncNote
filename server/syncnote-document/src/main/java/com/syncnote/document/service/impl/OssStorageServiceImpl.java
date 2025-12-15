@@ -2,7 +2,6 @@ package com.syncnote.document.service.impl;
 
 import com.aliyun.oss.OSSClientBuilder;
 import com.syncnote.document.config.OssConfig;
-import com.syncnote.document.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
@@ -12,10 +11,11 @@ import com.aliyun.oss.OSS;
 
 import java.io.InputStream;
 import java.time.Duration;
+import com.syncnote.document.service.IStorageService;
 
 @Service
 @Profile("prod")
-public class OssStorageServiceImpl implements StorageService {
+public class OssStorageServiceImpl implements IStorageService {
     private static final Logger logger = LoggerFactory.getLogger(OssStorageServiceImpl.class);
     
     private final OSS ossClient;

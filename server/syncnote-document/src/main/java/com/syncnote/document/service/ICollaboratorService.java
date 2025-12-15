@@ -9,7 +9,7 @@ import java.util.List;
  * 协作者服务
  * 提供文档协作者管理的相关功能
  */
-public interface CollaboratorService {
+public interface ICollaboratorService {
     /**
      * 获取文档协作者列表
      * @param documentId 文档ID
