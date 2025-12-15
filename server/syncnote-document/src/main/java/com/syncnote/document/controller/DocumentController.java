@@ -69,7 +69,7 @@ public class DocumentController {
                                             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
         documentService.deleteDocument(id, token);
-        return ApiResponse.succeed(null, "删除文档成功");
+        return ApiResponse.succeed("删除文档成功");
     }
 
     /**
@@ -119,6 +119,6 @@ public class DocumentController {
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
         documentService.permanentlyDeleteDocument(id, token);
-        return ApiResponse.succeed(null, "永久删除文档成功");
+        return ApiResponse.succeed("永久删除文档成功");
     }
 }

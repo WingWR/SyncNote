@@ -77,6 +77,6 @@ public class DocumentCollaboratorController {
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
         collaboratorService.removeCollaborator(documentId, userId, token);
-        return ApiResponse.succeed(null, "移除协作者成功");
+        return ApiResponse.succeed("移除协作者成功");
     }
 }
