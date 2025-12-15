@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: remote_user
+    password: Software007@
+    url: jdbc:mysql://139.196.151.22:3306/sync_note
+
+  data:
+    redis:
+      host: 139.196.151.22
+      port: 6379
+      password: Software007@
+      database: 0
