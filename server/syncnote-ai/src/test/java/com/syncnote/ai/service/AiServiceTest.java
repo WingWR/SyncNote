@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class AiServiceTest {
 
     private IAIService aiService;
-    private ProviderRegistry providerRegistry;
 
     @BeforeEach
     void setUp() {
@@ -31,7 +30,7 @@ class AiServiceTest {
         aiProperties.getProviders().put("mock", mockConfig);
 
         MockProvider mockProvider = new MockProvider(aiProperties);
-        providerRegistry = new ProviderRegistry(List.of(mockProvider));
+        ProviderRegistry providerRegistry = new ProviderRegistry(List.of(mockProvider));
         aiService = new AIServiceImpl(providerRegistry);
     }
 
@@ -105,8 +104,8 @@ class AiServiceTest {
 
         assertNotNull(models);
         assertEquals(1, models.size());
-        assertEquals("test-model", models.get(0).getModelId());
-        assertEquals("mock", models.get(0).getProviderId());
+        assertEquals("test-model", models.getFirst().getModelId());
+        assertEquals("mock", models.getFirst().getProviderId());
     }
 
     @Test

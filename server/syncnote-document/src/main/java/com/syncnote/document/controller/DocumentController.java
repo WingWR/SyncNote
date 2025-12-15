@@ -1,7 +1,6 @@
 package com.syncnote.document.controller;
 
 import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
-import com.syncnote.document.dto.request.UpdateDocumentRequestDTO;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
 import com.syncnote.document.dto.response.DocumentListItemResponseDTO;
 import com.syncnote.document.dto.response.DocumentResponseDTO;

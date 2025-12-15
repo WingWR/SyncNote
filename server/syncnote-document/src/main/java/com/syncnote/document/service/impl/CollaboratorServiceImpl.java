@@ -42,7 +42,7 @@ public class CollaboratorServiceImpl implements CollaboratorService {
         }
 
         // 检查用户是否有权限查看协作者列表（拥有者或协作者都可以查看）
-        boolean hasPermission = false;
+        boolean hasPermission;
         if (document.getOwnerId().equals(userId)) {
             hasPermission = true;
         } else {
@@ -90,7 +90,7 @@ public class CollaboratorServiceImpl implements CollaboratorService {
         }
 
         // 验证当前用户是否有权限添加协作者（只有文档拥有者或具有WRITE权限的协作者可以添加）
-        boolean canAdd = false;
+        boolean canAdd;
         if (document.getOwnerId().equals(userId)) {
             canAdd = true;
         } else {
@@ -161,7 +161,7 @@ public class CollaboratorServiceImpl implements CollaboratorService {
         }
 
         // 验证当前用户是否有权限移除协作者（只有文档拥有者或具有WRITE权限的协作者可以移除）
-        boolean canRemove = false;
+        boolean canRemove;
         if (document.getOwnerId().equals(userId)) {
             canRemove = true;
         } else {
