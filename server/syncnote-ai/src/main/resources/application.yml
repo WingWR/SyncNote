@@ -3,21 +3,21 @@ syncnote:
   ai:
     providers:
       # OpenAI Provider (disabled by default, can be enabled with env vars)
-      # OpenAI?????
+      # OpenAI提供者配置
       openai:
-        # OpenAI????
+        # OpenAI是否启用
         enabled: ${SYNCNOTE_AI_OPENAI_ENABLED:false}
-        # OpenAI?API??
+        # OpenAI的API密钥
         api-key: ${SYNCNOTE_AI_OPENAI_API_KEY:}
-        # OpenAI???
+        # OpenAI的端点
         endpoint: ${SYNCNOTE_AI_OPENAI_ENDPOINT:}
-        # OpenAI???ID
+        # OpenAI的模型ID
         model-id: ${SYNCNOTE_AI_OPENAI_MODEL_ID:gpt-3.5-turbo}
 
       # Mock Provider (enabled by default)
-      # Mock?????????
+      # Mock提供者（默认启用）
       mock:
-        # Mock???????
+        # Mock提供者是否启用
         enabled: ${SYNCNOTE_AI_MOCK_ENABLED:true}
-        # Mock?????ID
+        # Mock提供者模型ID
         model-id: ${SYNCNOTE_AI_MOCK_MODEL_ID:mock-model}
