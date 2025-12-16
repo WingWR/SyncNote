@@ -31,5 +31,5 @@ import { X } from 'lucide-vue-next'
 import { useSidebarStore } from '../../stores/sidebar'
 
 const sidebarStore = useSidebarStore()
-const _props = defineProps<{ title: string }>()
+const {} = defineProps<{ title: string }>()
 </script>

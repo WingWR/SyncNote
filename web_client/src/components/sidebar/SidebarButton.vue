@@ -13,7 +13,7 @@
 import type { FunctionalComponent } from 'vue'
 import type { LucideProps } from 'lucide-vue-next'
 
-const _props = defineProps<{
+const {} = defineProps<{
   title: string
   icon: FunctionalComponent<LucideProps>
   active: boolean
