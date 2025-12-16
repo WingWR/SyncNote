@@ -1,5 +1,5 @@
 import api from './index'
-import type { Document, DocumentCollaborator } from '../stores/document'
+import type { Document, DocumentCollaborator } from '../stores/document/types'
 
 export interface CreateDocumentRequest {
   name: string
