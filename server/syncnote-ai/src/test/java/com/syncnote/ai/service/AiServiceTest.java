@@ -1,6 +1,6 @@
 package com.syncnote.ai.service;
 
-import com.syncnote.ai.config.AiProperties;
+import com.syncnote.ai.config.AIProperties;
 import com.syncnote.ai.dto.ChatRequest;
 import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
@@ -23,8 +23,8 @@ class AiServiceTest {
 
     @BeforeEach
     void setUp() {
-        AiProperties aiProperties = new AiProperties();
-        AiProperties.ProviderConfig mockConfig = new AiProperties.ProviderConfig();
+        AIProperties aiProperties = new AIProperties();
+        AIProperties.ProviderConfig mockConfig = new AIProperties.ProviderConfig();
         mockConfig.setEnabled(true);
         mockConfig.setModelId("test-model");
         aiProperties.getProviders().put("mock", mockConfig);

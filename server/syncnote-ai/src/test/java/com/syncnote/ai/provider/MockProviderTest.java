@@ -1,6 +1,6 @@
 package com.syncnote.ai.provider;
 
-import com.syncnote.ai.config.AiProperties;
+import com.syncnote.ai.config.AIProperties;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,7 +12,7 @@ class MockProviderTest {
     
     @Test
     void testMockProviderEnabled() {
-        AiProperties.ProviderConfig config = new AiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(true);
         config.setModelId("test-model");
         
@@ -25,7 +25,7 @@ class MockProviderTest {
     
     @Test
     void testMockProviderDisabled() {
-        AiProperties.ProviderConfig config = new AiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(false);
         
         MockProvider provider = new MockProvider(config);
@@ -35,7 +35,7 @@ class MockProviderTest {
     
     @Test
     void testRewriteContinue() {
-        AiProperties.ProviderConfig config = new AiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(true);
         
         MockProvider provider = new MockProvider(config);
@@ -47,7 +47,7 @@ class MockProviderTest {
     
     @Test
     void testRewritePolish() {
-        AiProperties.ProviderConfig config = new AiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(true);
         
         MockProvider provider = new MockProvider(config);
@@ -59,7 +59,7 @@ class MockProviderTest {
     
     @Test
     void testQa() {
-        AiProperties.ProviderConfig config = new AiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(true);
         
         MockProvider provider = new MockProvider(config);
@@ -71,7 +71,7 @@ class MockProviderTest {
     
     @Test
     void testDisabledProviderThrowsException() {
-        AiProperties.ProviderConfig config = new AiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(false);
         
         MockProvider provider = new MockProvider(config);

@@ -3,7 +3,7 @@ package com.syncnote.ai.service.impl;
 import com.syncnote.ai.dto.ChatRequest;
 import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
-import com.syncnote.ai.provider.AiProvider;
+import com.syncnote.ai.provider.AIProvider;
 import com.syncnote.ai.provider.ProviderRegistry;
 import com.syncnote.ai.service.IAIService;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ public class AIServiceImpl implements IAIService {
     public ChatResponse processChat(ChatRequest request) {
         logger.debug("Processing chat request for model: {}", request.getModelId());
 
-        AiProvider provider = providerRegistry.getProvider(request.getModelId())
+        AIProvider provider = providerRegistry.getProvider(request.getModelId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid model ID: " + request.getModelId()));
 
         String mode = request.getMode();
@@ -55,7 +55,7 @@ public class AIServiceImpl implements IAIService {
     public List<ModelInfo> getAvailableModels() {
         logger.debug("Getting available models");
 
-        Map<String, AiProvider> providers = providerRegistry.getAllProviders();
+        Map<String, AIProvider> providers = providerRegistry.getAllProviders();
 
         return providers.entrySet().stream()
                 .map(entry -> new ModelInfo(
