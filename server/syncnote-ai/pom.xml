@@ -62,6 +62,11 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.syncnote</groupId>
+            <artifactId>syncnote-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 </project>
