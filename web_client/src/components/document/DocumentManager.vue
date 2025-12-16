@@ -18,7 +18,7 @@
       v-model:visible="showCreateDialog"
       v-model:name="newDocumentName"
       v-model:type="newDocumentType"
-      @create="createDocument"
+      @create="createDocumentHandler"
     />
   </div>
 </template>
@@ -41,6 +41,6 @@ const {
   triggerUpload,
   handleUpload,
   joinDocument,
-  createDocument
+  createDocumentHandler
 } = useDocumentManager()
 </script>

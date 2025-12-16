@@ -1,6 +1,6 @@
 import { ref, reactive, watch } from 'vue'
 import { useUserStore } from '../../stores/user'
-import { userApi } from '../../api/user'
+import { updateUser, logout } from '../../api/user'
 import { useRouter } from 'vue-router'
 
 export function useSystemSettings() {
@@ -27,7 +27,7 @@ export function useSystemSettings() {
   async function handleUpdateUser() {
     try {
       if (!userStore.currentUser) return
-      const updatedUser = await userApi.updateUser(editForm)
+      const updatedUser = await updateUser(editForm)
       userStore.setUser(updatedUser)
       showEditDialog.value = false
     } catch (error) {
@@ -38,7 +38,7 @@ export function useSystemSettings() {
 
   async function handleLogout() {
     try {
-      await userApi.logout()
+      await logout()
     } catch (error) {
       console.error('退出登录 API 失败', error)
     } finally {

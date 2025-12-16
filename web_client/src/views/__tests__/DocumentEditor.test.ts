@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import DocumentEditor from '../DocumentEditor.vue'
 import { useUserStore } from '../../stores/user'
-import { documentApi } from '../../api/document/document'
+import { getDocument, getCollaborators,  } from '../../api/document'
 
 // Mock API
 vi.mock('../../api/document', () => ({
@@ -86,8 +86,8 @@ describe('DocumentEditor', () => {
       permission: 'write' as const
     }
 
-    vi.mocked(documentApi.getDocument).mockResolvedValue(mockDocument)
-    vi.mocked(documentApi.getCollaborators).mockResolvedValue([])
+    vi.mocked(getDocument).mockResolvedValue(mockDocument)
+    vi.mocked(getCollaborators).mockResolvedValue([])
 
     await router.push('/home/document/1')
     
@@ -115,8 +115,8 @@ describe('DocumentEditor', () => {
       permission: 'write' as const
     }
 
-    vi.mocked(documentApi.getDocument).mockResolvedValue(mockDocument)
-    vi.mocked(documentApi.getCollaborators).mockResolvedValue([])
+    vi.mocked(getDocument).mockResolvedValue(mockDocument)
+    vi.mocked(getCollaborators).mockResolvedValue([])
 
     await router.push('/home/document/1')
     
@@ -146,8 +146,8 @@ describe('DocumentEditor', () => {
       permission: 'write' as const
     }
 
-    vi.mocked(documentApi.getDocument).mockResolvedValue(mockDocument)
-    vi.mocked(documentApi.getCollaborators).mockResolvedValue([])
+    vi.mocked(getDocument).mockResolvedValue(mockDocument)
+    vi.mocked(getCollaborators).mockResolvedValue([])
 
     await router.push('/home/document/1')
     
@@ -193,8 +193,8 @@ describe('DocumentEditor', () => {
       }
     ]
 
-    vi.mocked(documentApi.getDocument).mockResolvedValue(mockDocument)
-    vi.mocked(documentApi.getCollaborators).mockResolvedValue(mockCollaborators)
+    vi.mocked(getDocument).mockResolvedValue(mockDocument)
+    vi.mocked(getCollaborators).mockResolvedValue(mockCollaborators)
 
     await router.push('/home/document/1')
     
@@ -222,8 +222,8 @@ describe('DocumentEditor', () => {
       permission: 'write' as const
     }
 
-    vi.mocked(documentApi.getDocument).mockResolvedValue(mockDocument)
-    vi.mocked(documentApi.getCollaborators).mockResolvedValue([])
+    vi.mocked(getDocument).mockResolvedValue(mockDocument)
+    vi.mocked(getCollaborators).mockResolvedValue([])
 
     await router.push('/home/document/1')
     

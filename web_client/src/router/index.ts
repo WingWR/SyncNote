@@ -1,59 +1,31 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '../stores/user'
+import { authRoutes } from './auth'
+import { homeRoutes } from './home'
 
-import Homepage from '../views/Homepage.vue'
-import DocumentEditor from '../views/DocumentEditor.vue'
-import Login from '../views/Login.vue'
-import EditorTest from '../views/EditorTest.vue'
-import Sidebar from '../components/sidebar/Sidebar.vue'
-
-const routes = [
+// 合并所有路由
+const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     redirect: import.meta.env.DEV ? '/home' : '/login'
   },
-  {
-    path: '/login',
-    component: Login,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/home',
-    component: Sidebar,
-    meta: { requiresAuth: true },
-    children: [
-      {
-        path: '',
-        component: Homepage
-      },
-      {
-        path: 'document/:id',
-        name: 'DocumentEditor',
-        component: DocumentEditor,
-        props: true
-      },
-      {
-        path: 'editor-test',
-        name: 'EditorTest',
-        component: EditorTest
-      }
-    ]
-  }
+  ...authRoutes,
+  ...homeRoutes
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes
 })
 
 // 路由守卫
 router.beforeEach((to, _from, next) => {
   const userStore = useUserStore()
   const isDev = import.meta.env.DEV
-  
-  // 开发环境：跳过认证检查
+
+  // 开发环境跳过认证
   if (isDev) {
-    // 如果访问登录页且已登录，重定向到home
     if (to.path === '/login' && userStore.isAuthenticated) {
       next('/home')
     } else {
@@ -61,8 +33,8 @@ router.beforeEach((to, _from, next) => {
     }
     return
   }
-  
-  // 生产环境：正常认证检查
+
+  // 生产环境认证
   if (to.meta.requiresAuth && !userStore.isAuthenticated) {
     next('/login')
   } else if (to.path === '/login' && userStore.isAuthenticated) {

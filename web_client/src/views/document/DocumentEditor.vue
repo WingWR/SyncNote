@@ -129,9 +129,9 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
-import { useDocumentStore } from '../stores/document/index'
-import { documentApi } from '../api/document/document'
-import { useUserStore } from '../stores/user'
+import { useDocumentStore } from '../../stores/document/index'
+import { getDocument, getCollaborators, addCollaborator } from '../../api/document'
+import { useUserStore } from '../../stores/user'
 
 const route = useRoute()
 const documentStore = useDocumentStore()
@@ -158,10 +158,10 @@ async function loadDocument() {
   if (!docId) return
 
   try {
-    const document = await documentApi.getDocument(docId)
+    const document = await getDocument(docId)
     documentStore.setCurrentDocument(document)
     
-    const collaborators = await documentApi.getCollaborators(docId)
+    const collaborators = await getCollaborators(docId)
     documentStore.setCollaborators(collaborators)
     
     // 初始化Y.js协同编辑
@@ -242,13 +242,13 @@ async function handleAddCollaborator() {
   if (!newCollaboratorUserId.value || !documentStore.currentDocument) return
 
   try {
-    await documentApi.addCollaborator(documentStore.currentDocument.id, {
+    await addCollaborator(documentStore.currentDocument.id, {
       userId: newCollaboratorUserId.value,
       permission: newCollaboratorPermission.value
     })
     
     // 重新加载协作者列表
-    const collaborators = await documentApi.getCollaborators(documentStore.currentDocument.id)
+    const collaborators = await getCollaborators(documentStore.currentDocument.id)
     documentStore.setCollaborators(collaborators)
     
     showAddCollaboratorDialog.value = false
