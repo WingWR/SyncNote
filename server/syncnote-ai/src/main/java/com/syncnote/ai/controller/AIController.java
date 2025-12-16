@@ -3,9 +3,9 @@ package com.syncnote.ai.controller;
 import com.syncnote.ai.dto.ChatRequest;
 import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
-import com.syncnote.ai.service.IAIService;
+import com.syncnote.ai.service.impl.AIServiceImpl;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
+import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,33 +18,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/ai")
 @Validated
+@AllArgsConstructor
 public class AIController {
 
-    private final IAIService aiService;
+    private final AIServiceImpl aiService;
 
-    public AIController(IAIService aiService) {
-        this.aiService = aiService;
-    }
-
-    /**
-     * 统一对接：支持 mode=continue / rewrite-continue、polish / rewrite-polish、chat/qa/agent
-     * ChatRequest 需要携带：
-     *   - modelId: 对应 ProviderRegistry 已注册的模型
-     *   - mode: 上述任一模式
-     *   - context: 原文/上下文（续写、润色、问答可用）
-     *   - message: 续写/润色的指令或问答的问题
-     */
     @PostMapping("/chat")
-    public ResponseEntity<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
+    public ApiResponse<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
         ChatResponse response = aiService.processChat(request);
-        return ResponseEntity.ok(response);
+        return ApiResponse.succeed(response, "聊天成功");
     }
 
-    /**
-     * 获取可用模型列表
-     */
     @GetMapping("/models")
-    public ResponseEntity<List<ModelInfo>> models() {
-        return ResponseEntity.ok(aiService.getAvailableModels());
+    public ApiResponse<List<ModelInfo>> models() {
+        List<ModelInfo> models = aiService.getAvailableModels();
+        return ApiResponse.succeed(models, "获取模型列表成功");
     }
 }
