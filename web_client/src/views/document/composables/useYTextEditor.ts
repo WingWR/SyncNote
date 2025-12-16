@@ -1,7 +1,7 @@
 import type { Doc, Text } from 'yjs'
 import { ref, onBeforeUnmount } from 'vue'
 
-export function useYTextEditor(ydoc: Doc, ytext: Text) {
+export function useYTextEditor(_ydoc: Doc, ytext: Text) {
   const textContent = ref(ytext.toString())
 
   // Y.Text observer
