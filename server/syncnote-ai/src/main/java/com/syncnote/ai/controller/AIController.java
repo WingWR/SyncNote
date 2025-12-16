@@ -4,6 +4,7 @@ import com.syncnote.ai.dto.ChatRequest;
 import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
 import com.syncnote.ai.service.impl.AIServiceImpl;
+import com.syncnote.util.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
