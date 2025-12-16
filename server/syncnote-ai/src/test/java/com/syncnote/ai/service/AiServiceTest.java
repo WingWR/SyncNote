@@ -15,11 +15,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for IAIService
+ * Unit tests for AIServiceImpl
  */
 class AiServiceTest {
 
-    private IAIService aiService;
+    private AIServiceImpl aiService;
     private ProviderRegistry providerRegistry;
 
     @BeforeEach

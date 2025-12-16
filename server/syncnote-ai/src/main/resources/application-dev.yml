@@ -1,0 +1,15 @@
+# Development Profile Configuration for AI Module
+syncnote:
+  ai:
+    providers:
+      # OpenAI Provider (disabled by default in dev, can be enabled with env vars)
+      openai:
+        enabled: ${SYNCNOTE_AI_OPENAI_ENABLED:false}
+        api-key: ${SYNCNOTE_AI_OPENAI_API_KEY:}
+        endpoint: ${SYNCNOTE_AI_OPENAI_ENDPOINT:}
+        model-id: ${SYNCNOTE_AI_OPENAI_MODEL_ID:gpt-3.5-turbo}
+
+    # Mock Provider (enabled by default in dev)
+    mock:
+      enabled: ${SYNCNOTE_AI_MOCK_ENABLED:true}
+      model-id: ${SYNCNOTE_AI_MOCK_MODEL_ID:mock-model}

@@ -1,0 +1,23 @@
+# AI Module Configuration
+syncnote:
+  ai:
+    providers:
+      # OpenAI Provider (disabled by default, can be enabled with env vars)
+      # OpenAI?????
+      openai:
+        # OpenAI????
+        enabled: ${SYNCNOTE_AI_OPENAI_ENABLED:false}
+        # OpenAI?API??
+        api-key: ${SYNCNOTE_AI_OPENAI_API_KEY:}
+        # OpenAI???
+        endpoint: ${SYNCNOTE_AI_OPENAI_ENDPOINT:}
+        # OpenAI???ID
+        model-id: ${SYNCNOTE_AI_OPENAI_MODEL_ID:gpt-3.5-turbo}
+
+      # Mock Provider (enabled by default)
+      # Mock?????????
+      mock:
+        # Mock???????
+        enabled: ${SYNCNOTE_AI_MOCK_ENABLED:true}
+        # Mock?????ID
+        model-id: ${SYNCNOTE_AI_MOCK_MODEL_ID:mock-model}
