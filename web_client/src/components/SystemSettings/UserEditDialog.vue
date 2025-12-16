@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 
-const props = defineProps<{
+const _props = defineProps<{
   showEditDialog: boolean
   form: { username: string; email: string; avatar: string }
   onSave: () => void
