@@ -61,7 +61,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { FileText, Lock } from 'lucide-vue-next'
-import { useDocumentStore } from '../stores/document'
+import { useDocumentStore } from '../stores/document/index'
 
 const route = useRoute()
 const router = useRouter()

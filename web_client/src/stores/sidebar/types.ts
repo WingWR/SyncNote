@@ -1,0 +1,1 @@
+export type SidebarPanel = 'document' | 'workspace' | 'ai' | null

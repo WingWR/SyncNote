@@ -76,7 +76,7 @@
         <div class="flex-1 overflow-y-auto">
           <DocumentManager v-if="sidebarStore.activePanel === 'document'" />
           <Workspace v-if="sidebarStore.activePanel === 'workspace'" />
-          <AIChatWindow v-if="sidebarStore.activePanel === 'ai'" />
+          <AIChatPanel v-if="sidebarStore.activePanel === 'ai'" />
         </div>
       </div>
     </Transition>
@@ -98,11 +98,11 @@
 <script setup lang="ts">
 import { Home, FilePlus, FolderOpen, Bot, X } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { useSidebarStore } from '../stores/sidebar'
-import DocumentManager from './DocumentManager.vue'
+import { useSidebarStore } from '../stores/sidebar/index'
+import DocumentManager from './document/DocumentManager.vue'
 import Workspace from './Workspace.vue'
-import AIChatWindow from './AIChatWindow.vue'
 import SystemSettings from './SystemSettings.vue'
+import AIChatPanel from './ai/AIChatPanel.vue'
 
 const router = useRouter()
 const sidebarStore = useSidebarStore()

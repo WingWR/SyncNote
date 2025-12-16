@@ -1,5 +1,5 @@
 import api from './index'
-import type { User } from '../stores/user'
+import type { User } from '../stores/user/types'
 
 export interface LoginRequest {
   email: string
