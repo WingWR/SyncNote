@@ -15,6 +15,7 @@
     "@tiptap/pm": "^2.1.13",
     "@tiptap/starter-kit": "^2.1.13",
     "@tiptap/vue-3": "^2.1.13",
+    "@vue/test-utils": "^2.4.6",
     "axios": "^1.6.2",
     "lucide-vue-next": "^0.555.0",
     "pinia": "^2.1.7",
@@ -33,6 +34,7 @@
     "tailwindcss": "^3.4.0",
     "typescript": "~5.9.3",
     "vite": "npm:rolldown-vite@7.2.5",
+    "vitest": "^4.0.16",
     "vue-tsc": "^3.1.4"
   },
   "overrides": {
