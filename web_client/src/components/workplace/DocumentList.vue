@@ -59,7 +59,7 @@
 import { FileText, Lock } from 'lucide-vue-next'
 import type { Document } from '../../stores/document/types'
 
-const _props = defineProps<{
+const {} = defineProps<{
   documentsWithPermission: Document[]
   documentsWithoutPermission: Document[]
   currentDocId: number | null
