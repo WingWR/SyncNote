@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDocumentStore } from '../../stores/document'
-import { documentApi } from '../../api/document/document'
+import { createDocument, joinSharedDocument, uploadDocument } from '../../api/document'
 
 export function useDocumentManager() {
   const documentStore = useDocumentStore()
@@ -28,7 +28,7 @@ export function useDocumentManager() {
     const file = target.files?.[0]
     if (!file) return
     try {
-      const document = await documentApi.uploadDocument(file)
+      const document = await uploadDocument(file)
       documentStore.addDocument(document)
       router.push(`/home/document/${document.id}`)
     } catch (err) {
@@ -41,7 +41,7 @@ export function useDocumentManager() {
     if (!documentIdInput.value) return
     try {
       const docId = parseInt(documentIdInput.value)
-      const document = await documentApi.joinSharedDocument(docId)
+      const document = await joinSharedDocument(docId)
       documentStore.addDocument(document)
       showJoinDialog.value = false
       documentIdInput.value = ''
@@ -52,23 +52,22 @@ export function useDocumentManager() {
     }
   }
 
-  async function createDocument() {
-    if (!newDocumentName.value.trim()) return
-    try {
-      const document = await documentApi.createDocument({
-        name: newDocumentName.value,
-        type: newDocumentType.value
-      })
-      documentStore.addDocument(document)
-      showCreateDialog.value = false
-      newDocumentName.value = ''
-      router.push(`/home/document/${document.id}`)
-    } catch (err) {
-      console.error(err)
-      alert('创建文档失败')
-    }
+async function createDocumentHandler() {
+  if (!newDocumentName.value.trim()) return
+  try {
+    const document = await createDocument({
+      name: newDocumentName.value,
+      type: newDocumentType.value
+    })
+    documentStore.addDocument(document)
+    showCreateDialog.value = false
+    newDocumentName.value = ''
+    router.push(`/home/document/${document.id}`)
+  } catch (err) {
+    console.error(err)
+    alert('创建文档失败')
   }
-
+}
   return {
     showJoinDialog,
     showCreateDialog,
@@ -79,6 +78,6 @@ export function useDocumentManager() {
     triggerUpload,
     handleUpload,
     joinDocument,
-    createDocument
+    createDocumentHandler
   }
 }

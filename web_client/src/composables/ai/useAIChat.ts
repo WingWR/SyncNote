@@ -1,7 +1,7 @@
 // AIChatPanel的业务逻辑
 import { useAIStore } from '../../stores/ai'
 import { useDocumentStore } from '../../stores/document'
-import { aiApi } from '../../api/ai'
+import { chat } from '../../api/ai'
 
 export function useAIChat() {
   const aiStore = useAIStore()
@@ -21,7 +21,7 @@ export function useAIChat() {
     aiStore.setLoading(true)
 
     try {
-      const response = await aiApi.chat({
+      const response = await chat({
         message,
         documentId: documentStore.currentDocument?.id,
         modelId: aiStore.selectedModel?.id ?? '',

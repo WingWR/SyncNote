@@ -5,7 +5,7 @@ import './style.css'
 import router from './router'
 import App from './App.vue'
 import { useUserStore } from './stores/user'
-import { userApi } from './api/user'
+import { getCurrentUser } from './api/user'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -34,7 +34,7 @@ if (isDev) {
 const token = localStorage.getItem('token')
 if (token && !isDev) {
   const userStore = useUserStore()
-  userApi.getCurrentUser()
+  getCurrentUser()
     .then(user => {
       userStore.setUser(user)
     })
