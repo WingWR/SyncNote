@@ -5,7 +5,7 @@ import Homepage from '../views/Homepage.vue'
 import DocumentEditor from '../views/DocumentEditor.vue'
 import Login from '../views/Login.vue'
 import EditorTest from '../views/EditorTest.vue'
-import CoreSlideBar from '../components/CoreSlideBar.vue'
+import Sidebar from '../components/sidebar/Sidebar.vue'
 
 const routes = [
   {
@@ -19,7 +19,7 @@ const routes = [
   },
   {
     path: '/home',
-    component: CoreSlideBar,
+    component: Sidebar,
     meta: { requiresAuth: true },
     children: [
       {

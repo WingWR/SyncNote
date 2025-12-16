@@ -130,7 +130,7 @@ import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { useDocumentStore } from '../stores/document/index'
-import { documentApi } from '../api/document'
+import { documentApi } from '../api/document/document'
 import { useUserStore } from '../stores/user'
 
 const route = useRoute()
