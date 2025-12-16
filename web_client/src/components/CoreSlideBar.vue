@@ -23,7 +23,6 @@
           title="文档管理"
         >
           <FilePlus :size="24" />
-          <span class="text-xs">文档</span>
         </button>
 
         <!-- 工作区入口 -->
@@ -34,7 +33,6 @@
           title="工作区"
         >
           <FolderOpen :size="24" />
-          <span class="text-xs">工作区</span>
         </button>
 
         <!-- AI助手入口 -->
@@ -45,7 +43,6 @@
           title="AI助手"
         >
           <Bot :size="24" />
-          <span class="text-xs">AI</span>
         </button>
       </div>
 
