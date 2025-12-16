@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import DocumentEditor from '../DocumentEditor.vue'
 import { useUserStore } from '../../stores/user'
-import { documentApi } from '../../api/document'
+import { documentApi } from '../../api/document/document'
 
 // Mock API
 vi.mock('../../api/document', () => ({

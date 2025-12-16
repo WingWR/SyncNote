@@ -1,16 +1,14 @@
 <template>
-  <div class="p-4 border-b border-gray-200">
-    <h3 class="text-sm font-semibold text-gray-700 mb-3">工作区</h3>
-    
+  <div>
     <!-- 有权限的文档 -->
-    <div v-if="documentStore.documentsWithPermission.length > 0" class="mb-4">
+    <div v-if="documentsWithPermission.length > 0" class="mb-4">
       <h4 class="text-xs font-medium text-gray-500 mb-2">已开放权限</h4>
       <div class="space-y-1">
         <button
-          v-for="doc in documentStore.documentsWithPermission"
+          v-for="doc in documentsWithPermission"
           :key="doc.id"
           @click="openDocument(doc.id)"
-          :class="[
+          :class="[ 
             'w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2',
             currentDocId === doc.id
               ? 'bg-blue-100 text-blue-700'
@@ -25,14 +23,14 @@
     </div>
 
     <!-- 没有权限的文档 -->
-    <div v-if="documentStore.documentsWithoutPermission.length > 0">
+    <div v-if="documentsWithoutPermission.length > 0">
       <h4 class="text-xs font-medium text-gray-500 mb-2">只读权限</h4>
       <div class="space-y-1">
         <button
-          v-for="doc in documentStore.documentsWithoutPermission"
+          v-for="doc in documentsWithoutPermission"
           :key="doc.id"
           @click="openDocument(doc.id)"
-          :class="[
+          :class="[ 
             'w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2',
             currentDocId === doc.id
               ? 'bg-blue-100 text-blue-700'
@@ -48,7 +46,7 @@
 
     <!-- 空状态 -->
     <div
-      v-if="documentStore.documents.length === 0"
+      v-if="documentsWithPermission.length === 0 && documentsWithoutPermission.length === 0"
       class="text-center py-8 text-gray-400 text-sm"
     >
       <FileText :size="32" class="mx-auto mb-2 opacity-50" />
@@ -58,32 +56,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { FileText, Lock } from 'lucide-vue-next'
-import { useDocumentStore } from '../stores/document/index'
+import type { Document } from '../../stores/document/types'
 
-const route = useRoute()
-const router = useRouter()
-const documentStore = useDocumentStore()
-
-const currentDocId = computed(() => {
-  const docId = route.params.id
-  return docId ? parseInt(docId as string) : null
-})
-
-function getFileTypeIcon(type: string) {
-  const icons: Record<string, string> = {
-    txt: '.txt',
-    md: '.md',
-    docx: '.docx',
-    pptx: '.pptx'
-  }
-  return icons[type] || ''
-}
-
-function openDocument(docId: number) {
-  router.push(`/home/document/${docId}`)
-}
+const props = defineProps<{
+  documentsWithPermission: Document[]
+  documentsWithoutPermission: Document[]
+  currentDocId: number | null
+  openDocument: (docId: number) => void
+  getFileTypeIcon: (type: string) => string
+}>()
 </script>
-

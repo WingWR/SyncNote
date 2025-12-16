@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDocumentStore } from '../../stores/document'
-import { documentApi } from '../../api/document'
+import { documentApi } from '../../api/document/document'
 
 export function useDocumentManager() {
   const documentStore = useDocumentStore()
