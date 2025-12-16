@@ -1,21 +1,19 @@
 package com.syncnote.ai.dto;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 /**
  * Response DTO for AI chat endpoint
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChatResponse {
     
     private String message;
     private String context;
 
-    public ChatResponse() {
-    }
 
-    public ChatResponse(String message, String context) {
-        this.message = message;
-        this.context = context;
-    }
 
    
 }

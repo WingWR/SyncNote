@@ -5,7 +5,7 @@ import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
 import com.syncnote.ai.provider.AIProvider;
 import com.syncnote.ai.provider.ProviderRegistry;
-import com.syncnote.ai.service.IAIService;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -15,20 +15,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class AIServiceImpl implements IAIService {
-
-    private static final Logger logger = LoggerFactory.getLogger(IAIService.class);
+@AllArgsConstructor
+public class AIServiceImpl {
+    private static final Logger logger = LoggerFactory.getLogger(AIServiceImpl.class);
 
     private final ProviderRegistry providerRegistry;
 
-    public AIServiceImpl(ProviderRegistry providerRegistry) {
-        this.providerRegistry = providerRegistry;
-    }
+   
 
     /**
      * Process a chat request
      */
-    @Override
+    
     public ChatResponse processChat(ChatRequest request) {
         logger.debug("Processing chat request for model: {}", request.getModelId());
 
@@ -51,7 +49,7 @@ public class AIServiceImpl implements IAIService {
     /**
      * Get list of available models
      */
-    @Override
+   
     public List<ModelInfo> getAvailableModels() {
         logger.debug("Getting available models");
 
