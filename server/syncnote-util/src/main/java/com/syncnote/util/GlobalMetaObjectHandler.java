@@ -1,15 +1,12 @@
-package com.syncnote.document.config;
+package com.syncnote.util;
 
-import com.syncnote.util.context.CurrentUserContext;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.syncnote.util.context.CurrentUserContext;
 import org.apache.ibatis.reflection.MetaObject;
-import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 
-@Component
-public class DocumentMetaObjectHandler implements MetaObjectHandler {
-
+public class GlobalMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
@@ -39,5 +36,4 @@ public class DocumentMetaObjectHandler implements MetaObjectHandler {
             return null;
         }
     }
-
 }
