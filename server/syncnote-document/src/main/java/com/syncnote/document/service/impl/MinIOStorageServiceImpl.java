@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 @Service
-@Profile("dev")
+
 public class MinIOStorageServiceImpl implements IStorageService {
 
     private final MinioClient minioClient;

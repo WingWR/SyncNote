@@ -1,6 +1,6 @@
 storage:
   minio:
     endpoint: http://localhost:9000
-    accessKey: minioadmin
-    secretKey: minioadmin
-    bucket: syncnote-documents  # Bucket 名称（开发和生产环境可统一使用相同名称）
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket: syncnote-documents
