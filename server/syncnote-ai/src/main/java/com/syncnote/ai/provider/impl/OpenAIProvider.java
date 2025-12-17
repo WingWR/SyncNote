@@ -1,7 +1,7 @@
 package com.syncnote.ai.provider.impl;
 
 import com.syncnote.ai.config.AIProperties;
-import com.syncnote.ai.provider.AIProvider;
+import com.syncnote.ai.provider.IAIProvider;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.slf4j.Logger;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * OpenAI provider implementation using LangChain4j
  */
 @Component
-public class OpenAIProvider implements AIProvider {
+public class OpenAIProvider implements IAIProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenAIProvider.class);
 
