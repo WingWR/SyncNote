@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 
 @Component
-public class MyMetaObjectHandler implements MetaObjectHandler {
+public class DocumentMetaObjectHandler implements MetaObjectHandler {
 
 
     @Override
