@@ -35,3 +35,4 @@ public class ProviderRegistry {
         return providersByModel.containsKey(modelId);
     }
 }
+
