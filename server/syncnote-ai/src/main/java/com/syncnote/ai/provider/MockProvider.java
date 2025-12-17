@@ -1,6 +1,6 @@
 package com.syncnote.ai.provider;
 
-import com.syncnote.ai.config.TheAiProperties;
+import com.syncnote.ai.config.AIProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
  * Mock provider for testing and demonstration
  */
 @Component
-public class MockProviderThe implements TheAiProvider {
+public class MockProvider implements AIProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(MockProviderThe.class);
+    private static final Logger logger = LoggerFactory.getLogger(MockProvider.class);
 
     private final String modelId;
     private final boolean enabled;
@@ -21,14 +21,14 @@ public class MockProviderThe implements TheAiProvider {
      * Spring 使用的构造函数：从 AIProperties 中读取 "mock" 配置
      */
     @Autowired
-    public MockProviderThe(TheAiProperties aiProperties) {
+    public MockProvider(AIProperties aiProperties) {
         this(aiProperties != null ? aiProperties.getProviders().get("mock") : null);
     }
 
     /**
      * 便于单测的构造函数：直接传入 ProviderConfig
      */
-    MockProviderThe(TheAiProperties.ProviderConfig config) {
+    MockProvider(AIProperties.ProviderConfig config) {
         this.modelId = config != null && config.getModelId() != null ? config.getModelId() : "mock-model";
         this.enabled = config != null && config.isEnabled();
 

@@ -1,22 +1,22 @@
 package com.syncnote.ai.provider;
 
-import com.syncnote.ai.config.TheAiProperties;
+import com.syncnote.ai.config.AIProperties;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for MockProviderThe
+ * Unit tests for MockProvider
  */
 class MockProviderTest {
     
     @Test
     void testMockProviderEnabled() {
-        TheAiProperties.ProviderConfig config = new TheAiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(true);
         config.setModelId("test-model");
         
-        MockProviderThe provider = new MockProviderThe(config);
+        MockProvider provider = new MockProvider(config);
         
         assertTrue(provider.isEnabled());
         assertEquals("test-model", provider.getModelId());
@@ -25,20 +25,20 @@ class MockProviderTest {
     
     @Test
     void testMockProviderDisabled() {
-        TheAiProperties.ProviderConfig config = new TheAiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(false);
         
-        MockProviderThe provider = new MockProviderThe(config);
+        MockProvider provider = new MockProvider(config);
         
         assertFalse(provider.isEnabled());
     }
     
     @Test
     void testRewriteContinue() {
-        TheAiProperties.ProviderConfig config = new TheAiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(true);
         
-        MockProviderThe provider = new MockProviderThe(config);
+        MockProvider provider = new MockProvider(config);
         
         String result = provider.rewriteContinue("This is some context", "continue writing");
         assertNotNull(result);
@@ -47,10 +47,10 @@ class MockProviderTest {
     
     @Test
     void testRewritePolish() {
-        TheAiProperties.ProviderConfig config = new TheAiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(true);
         
-        MockProviderThe provider = new MockProviderThe(config);
+        MockProvider provider = new MockProvider(config);
         
         String result = provider.rewritePolish("This is some text to polish", null);
         assertNotNull(result);
@@ -59,10 +59,10 @@ class MockProviderTest {
     
     @Test
     void testQa() {
-        TheAiProperties.ProviderConfig config = new TheAiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(true);
         
-        MockProviderThe provider = new MockProviderThe(config);
+        MockProvider provider = new MockProvider(config);
         
         String result = provider.qa("Some context", "What is this about?");
         assertNotNull(result);
@@ -71,10 +71,10 @@ class MockProviderTest {
     
     @Test
     void testDisabledProviderThrowsException() {
-        TheAiProperties.ProviderConfig config = new TheAiProperties.ProviderConfig();
+        AIProperties.ProviderConfig config = new AIProperties.ProviderConfig();
         config.setEnabled(false);
         
-        MockProviderThe provider = new MockProviderThe(config);
+        MockProvider provider = new MockProvider(config);
         
         assertThrows(IllegalStateException.class, () -> 
             provider.rewriteContinue("context", "prompt")
