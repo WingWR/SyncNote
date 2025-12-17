@@ -1,7 +1,7 @@
 package com.syncnote.ai.provider.impl;
 
 import com.syncnote.ai.config.AIProperties;
-import com.syncnote.ai.provider.AIProvider;
+import com.syncnote.ai.provider.IAIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * Mock provider for testing and demonstration
  */
 @Component
-public class MockProvider implements AIProvider {
+public class MockProvider implements IAIProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(MockProvider.class);
 
@@ -23,13 +23,25 @@ public class MockProvider implements AIProvider {
      */
     @Autowired
     public MockProvider(AIProperties aiProperties) {
-        this(aiProperties != null ? aiProperties.getProviders().get("mock") : null);
+        AIProperties.ProviderConfig config = null;
+        if (aiProperties != null && aiProperties.getProviders() != null) {
+            config = aiProperties.getProviders().get("mock");
+        }
+
+        this.modelId = config != null && config.getModelId() != null ? config.getModelId() : "mock-model";
+        this.enabled = config != null && config.isEnabled();
+
+        if (this.enabled) {
+            logger.info("Mock provider initialized with model: {}", this.modelId);
+        } else {
+            logger.warn("Mock provider is disabled or no config provided");
+        }
     }
 
     /**
      * 便于单测的构造函数：直接传入 ProviderConfig
      */
-    MockProvider(AIProperties.ProviderConfig config) {
+    public MockProvider(AIProperties.ProviderConfig config) {
         this.modelId = config != null && config.getModelId() != null ? config.getModelId() : "mock-model";
         this.enabled = config != null && config.isEnabled();
 

@@ -3,7 +3,7 @@ package com.syncnote.ai.service.impl;
 import com.syncnote.ai.dto.request.ChatRequest;
 import com.syncnote.ai.dto.response.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
-import com.syncnote.ai.provider.AIProvider;
+import com.syncnote.ai.provider.IAIProvider;
 import com.syncnote.ai.provider.ProviderRegistry;
 import com.syncnote.ai.service.IAIService;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class AIServiceImpl implements IAIService {
     public ChatResponse processChat(ChatRequest request) {
         logger.debug("Processing chat request for model: {}", request.getModelId());
 
-        AIProvider provider = providerRegistry.getProvider(request.getModelId())
+        IAIProvider provider = providerRegistry.getProvider(request.getModelId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid model ID: " + request.getModelId()));
 
         String mode = request.getMode();
@@ -46,7 +46,7 @@ public class AIServiceImpl implements IAIService {
     public List<ModelInfo> getAvailableModels() {
         logger.debug("Getting available models");
 
-        Map<String, AIProvider> providers = providerRegistry.getAllProviders();
+        Map<String, IAIProvider> providers = providerRegistry.getAllProviders();
 
         return providers.entrySet().stream()
                 .map(entry -> new ModelInfo(

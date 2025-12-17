@@ -14,20 +14,20 @@ public class ProviderRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(ProviderRegistry.class);
 
-    private final Map<String, AIProvider> providersByModel;
+    private final Map<String, IAIProvider> providersByModel;
 
-    public ProviderRegistry(List<AIProvider> providers) {
+    public ProviderRegistry(List<IAIProvider> providers) {
         this.providersByModel = providers.stream()
-                .filter(AIProvider::isEnabled)
-                .collect(Collectors.toMap(AIProvider::getModelId, p -> p, (a, b) -> a));
+                .filter(IAIProvider::isEnabled)
+                .collect(Collectors.toMap(IAIProvider::getModelId, p -> p, (a, b) -> a));
         logger.info("Initialized {} AI provider(s)", providersByModel.size());
     }
 
-    public Optional<AIProvider> getProvider(String modelId) {
+    public Optional<IAIProvider> getProvider(String modelId) {
         return Optional.ofNullable(providersByModel.get(modelId));
     }
 
-    public Map<String, AIProvider> getAllProviders() {
+    public Map<String, IAIProvider> getAllProviders() {
         return providersByModel;
     }
 
