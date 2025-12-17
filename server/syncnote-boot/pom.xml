@@ -14,10 +14,6 @@
     <packaging>jar</packaging>
     <name>Boot Module</name>
 
-    <properties>
-        <java.version>21</java.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -39,13 +35,20 @@
             <artifactId>syncnote-document</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- 引用工具模块 -->
         <dependency>
             <groupId>com.syncnote</groupId>
             <artifactId>syncnote-util</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
