@@ -1,10 +1,10 @@
 package com.syncnote.ai.service;
 
 import com.syncnote.ai.config.AIProperties;
-import com.syncnote.ai.dto.ChatRequest;
-import com.syncnote.ai.dto.ChatResponse;
+import com.syncnote.ai.dto.request.ChatRequest;
+import com.syncnote.ai.dto.response.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
-import com.syncnote.ai.provider.MockProvider;
+import com.syncnote.ai.provider.impl.MockProvider;
 import com.syncnote.ai.provider.ProviderRegistry;
 import com.syncnote.ai.service.impl.AIServiceImpl;
 import org.junit.jupiter.api.BeforeEach;

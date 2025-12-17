@@ -1,6 +1,7 @@
-package com.syncnote.ai.provider;
+package com.syncnote.ai.provider.impl;
 
 import com.syncnote.ai.config.AIProperties;
+import com.syncnote.ai.provider.AIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,7 @@
-package com.syncnote.ai.provider;
+package com.syncnote.ai.provider.impl;
 
 import com.syncnote.ai.config.AIProperties;
+import com.syncnote.ai.provider.AIProvider;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.slf4j.Logger;

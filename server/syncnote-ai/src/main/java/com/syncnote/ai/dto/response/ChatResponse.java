@@ -1,4 +1,4 @@
-package com.syncnote.ai.dto;
+package com.syncnote.ai.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
