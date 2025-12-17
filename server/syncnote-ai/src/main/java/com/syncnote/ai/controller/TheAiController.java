@@ -18,11 +18,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/ai")
 @Validated
-public class AIController {
+public class TheAiController {
 
     private final IAIService aiService;
 
-    public AIController(IAIService aiService) {
+    public TheAiController(IAIService aiService) {
         this.aiService = aiService;
     }
 

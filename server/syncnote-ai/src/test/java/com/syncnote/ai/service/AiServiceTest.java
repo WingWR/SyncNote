@@ -1,10 +1,10 @@
 package com.syncnote.ai.service;
 
-import com.syncnote.ai.config.AIProperties;
+import com.syncnote.ai.config.TheAiProperties;
 import com.syncnote.ai.dto.ChatRequest;
 import com.syncnote.ai.dto.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
-import com.syncnote.ai.provider.MockProvider;
+import com.syncnote.ai.provider.MockProviderThe;
 import com.syncnote.ai.provider.ProviderRegistry;
 import com.syncnote.ai.service.impl.AIServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,13 +23,13 @@ class AiServiceTest {
 
     @BeforeEach
     void setUp() {
-        AIProperties aiProperties = new AIProperties();
-        AIProperties.ProviderConfig mockConfig = new AIProperties.ProviderConfig();
+        TheAiProperties TheAiProperties = new TheAiProperties();
+        TheAiProperties.ProviderConfig mockConfig = new TheAiProperties.ProviderConfig();
         mockConfig.setEnabled(true);
         mockConfig.setModelId("test-model");
-        aiProperties.getProviders().put("mock", mockConfig);
+        TheAiProperties.getProviders().put("mock", mockConfig);
 
-        MockProvider mockProvider = new MockProvider(aiProperties);
+        MockProviderThe mockProvider = new MockProviderThe(TheAiProperties);
         ProviderRegistry providerRegistry = new ProviderRegistry(List.of(mockProvider));
         aiService = new AIServiceImpl(providerRegistry);
     }

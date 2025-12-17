@@ -10,7 +10,7 @@ import java.util.Map;
 @Data
 @Component
 @ConfigurationProperties(prefix = "syncnote.ai")
-public class AIProperties {
+public class TheAiProperties {
 
     private Map<String, ProviderConfig> providers = new HashMap<>();
 

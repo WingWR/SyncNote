@@ -1,6 +1,6 @@
 package com.syncnote.ai.provider;
 
-import com.syncnote.ai.config.AIProperties;
+import com.syncnote.ai.config.TheAiProperties;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.slf4j.Logger;
@@ -11,16 +11,16 @@ import org.springframework.stereotype.Component;
  * OpenAI provider implementation using LangChain4j
  */
 @Component
-public class OpenAIProvider implements AIProvider {
+public class OpenTheAiProvider implements TheAiProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(OpenAIProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpenTheAiProvider.class);
 
     private final String modelId;
     private final ChatLanguageModel chatModel;
     private final boolean enabled;
 
-    public OpenAIProvider(AIProperties aiProperties) {
-        AIProperties.ProviderConfig config = aiProperties.getProviders().get("openai");
+    public OpenTheAiProvider(TheAiProperties theAiProperties) {
+        TheAiProperties.ProviderConfig config = theAiProperties.getProviders().get("openai");
         if (config == null) {
             this.modelId = "gpt-3.5-turbo";
             this.enabled = false;
