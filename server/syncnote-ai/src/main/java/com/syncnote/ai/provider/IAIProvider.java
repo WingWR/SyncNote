@@ -3,7 +3,7 @@ package com.syncnote.ai.provider;
 /**
  * Interface for AI provider operations
  */
-public interface AIProvider {
+public interface IAIProvider {
     
     /**
      * Continue writing without altering prior content
