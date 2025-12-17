@@ -1,9 +1,8 @@
-package com.syncnote.ai.dto;
+package com.syncnote.ai.dto.request;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 /**
  * Request DTO for AI chat endpoint

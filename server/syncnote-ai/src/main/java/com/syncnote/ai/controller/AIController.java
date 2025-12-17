@@ -1,7 +1,7 @@
 package com.syncnote.ai.controller;
 
-import com.syncnote.ai.dto.ChatRequest;
-import com.syncnote.ai.dto.ChatResponse;
+import com.syncnote.ai.dto.request.ChatRequest;
+import com.syncnote.ai.dto.response.ChatResponse;
 import com.syncnote.ai.dto.ModelInfo;
 import com.syncnote.ai.service.impl.AIServiceImpl;
 import com.syncnote.util.ApiResponse;
