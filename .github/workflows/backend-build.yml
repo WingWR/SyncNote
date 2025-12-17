@@ -42,7 +42,17 @@ jobs:
           # 缓存依赖路径指向多模块父 pom.xml 
           cache-dependency-path: 'server/pom.xml' 
 
-      # 3. 运行构建、测试和验证流程
+      # 3. 构建整个多模块项目
+      - name: Build multi-module project
+        run: ./mvnw clean install -B
+
+      # 4. 启动后端模块并测试健康接口
+      - name: Start backend module
+        run: |
+          cd server/syncnote-boot
+          ./mvnw spring-boot:run
+
+      # 5. 运行构建、测试和验证流程
       # 使用 'verify' 命令：它会执行编译、单元测试，并确保构建通过。
       # 只有所有测试通过，才会成功完成。
       - name: Run Build and Tests
