@@ -1,6 +1,7 @@
 package com.syncnote.ai.provider;
 
 import com.syncnote.ai.config.AIProperties;
+import com.syncnote.ai.provider.impl.MockProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,5 +1,6 @@
-package com.syncnote.ai.dto;
+package com.syncnote.ai.dto.response;
 
+import com.syncnote.ai.dto.ModelInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
