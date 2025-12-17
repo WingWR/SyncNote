@@ -37,6 +37,11 @@
                 <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>3.5.15</version>
             </dependency>
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>3.0.3</version>
+            </dependency>
 
             <!-- MySQL 驱动 -->
             <dependency>
