@@ -2,6 +2,7 @@ package com.syncnote.document.controller;
 
 
 import com.syncnote.document.dto.request.AddCollaboratorRequestDTO;
+import com.syncnote.document.dto.request.UpdateCollaboratorPermissionRequestDTO;
 import com.syncnote.document.dto.response.CollaboratorResponseDTO;
 import com.syncnote.util.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,5 +80,45 @@ public class DocumentCollaboratorController {
         String token = authHeader.replace("Bearer", "").trim();
         collaboratorService.removeCollaborator(documentId, userId, token);
         return ApiResponse.succeed("移除协作者成功");
+    }
+
+    /**
+     * 4.4 加入共享文档
+     * 用户通过文档ID直接加入到共享文档协作者列表，默认为READ权限
+     * 适用于通过分享链接加入文档的场景
+     * 
+     * @param documentId 文档ID
+     * @param authHeader 认证令牌
+     * @return 加入后的协作者信息
+     */
+    @PostMapping("/{documentId}/join")
+    public ApiResponse<CollaboratorResponseDTO> joinSharedDocument(
+            @PathVariable Long documentId,
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer", "").trim();
+        CollaboratorResponseDTO collaborator = collaboratorService.joinSharedDocument(documentId, token);
+        return ApiResponse.succeed(collaborator, "加入共享文档成功");
+    }
+
+    /**
+     * 4.5 更新协作者权限
+     * 更新指定协作者的权限（READ或WRITE）
+     * 只有文档拥有者或具有写权限的协作者可以更新协作者权限
+     * 
+     * @param documentId 文档ID
+     * @param userId 要更新权限的用户ID
+     * @param request 更新权限请求（包含新的permission）
+     * @param authHeader 认证令牌
+     * @return 更新后的协作者信息
+     */
+    @PutMapping("/{documentId}/collaborators/{userId}/permission")
+    public ApiResponse<CollaboratorResponseDTO> updateCollaboratorPermission(
+            @PathVariable Long documentId,
+            @PathVariable Long userId,
+            @Valid @RequestBody UpdateCollaboratorPermissionRequestDTO request,
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer", "").trim();
+        CollaboratorResponseDTO collaborator = collaboratorService.updateCollaboratorPermission(documentId, userId, request, token);
+        return ApiResponse.succeed(collaborator, "更新协作者权限成功");
     }
 }

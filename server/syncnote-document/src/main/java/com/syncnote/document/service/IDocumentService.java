@@ -2,8 +2,7 @@ package com.syncnote.document.service;
 
 import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
-import com.syncnote.document.dto.response.DocumentListItemResponseDTO;
-import com.syncnote.document.dto.response.DocumentResponseDTO;
+import com.syncnote.document.dto.response.DocumentDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -18,7 +17,7 @@ public interface IDocumentService {
      * @param token 用户认证令牌
      * @return 文档列表
      */
-    List<DocumentListItemResponseDTO> getDocumentList(String token);
+    List<DocumentDTO> getDocumentList(String token);
 
     /**
      * 根据ID获取文档详情
@@ -36,7 +35,7 @@ public interface IDocumentService {
      * @param token 用户认证令牌
      * @return 创建的文档信息
      */
-    DocumentResponseDTO createDocument(CreateDocumentRequestDTO dto, String token);
+    DocumentDTO createDocument(CreateDocumentRequestDTO dto, String token);
 
     /**
      * 上传文档并创建记录
@@ -47,7 +46,7 @@ public interface IDocumentService {
      * @param token 用户认证令牌
      * @return 创建的文档信息
      */
-    DocumentResponseDTO uploadDocument(MultipartFile file, Long parentId, String token);
+    DocumentDTO uploadDocument(MultipartFile file, Long parentId, String token);
 
     /**
      * 删除文档（软删除）
@@ -65,7 +64,7 @@ public interface IDocumentService {
      * @param token 用户认证令牌
      * @return 回收站文档列表
      */
-    List<DocumentListItemResponseDTO> getTrashDocumentList(String token);
+    List<DocumentDTO> getTrashDocumentList(String token);
 
     /**
      * 永久删除回收站中的文档（硬删除）

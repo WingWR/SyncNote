@@ -134,59 +134,146 @@
 
 ---
 
-**4. 协作者相关接口 (Collaborator — 更新)**
+**4. 协作者相关接口**
 
-- 基础路径：`/api/documents`（控制器使用复数 `documents`）
-
-4.1 获取文档协作者列表
-- URL: `GET /api/documents/{documentId}/collaborators`
-- 请求头: `Authorization: Bearer <token>`
-- 响应:
+### 4.1 获取文档协作者列表
+- **URL**: `/api/documents/{documentId}/collaborators`
+- **Method**: `GET`
+- **Parameters**:
+  - `documentId` (path, 必选): 文档ID
+  - `page` (query, 可选): 当前页码
+  - `size` (query, 可选): 每页数量
+- **Response**:
 ```json
 {
-  "code": 0,
-  "message": "获取协作者列表成功",
+  "code": 200,
+  "message": "成功",
   "data": [
     {
-      "id": 1,
-      "documentId": 1,
-      "userId": 2,
-      "permission": "READ" | "WRITE" ,
-      "joinedAt": "2024-01-01T00:00:00Z"
+      "id": "协作者ID",
+      "documentId": "文档ID",
+      "userId": "用户ID",
+      "permission": "权限类型 (READ/WRITE)",
+      "joinedAt": "加入时间"
     }
   ]
 }
 ```
-说明：`CollaboratorResponseDTO.permission` 在当前实现中使用大写 `"READ" 或 "WRITE" (大写)`。
 
-4.2 添加协作者
-- URL: `POST /api/documents/{documentId}/collaborators`
-- 请求头: `Authorization: Bearer <token>`, `Content-Type: application/json`
-- 请求体示例:
+### 4.2 添加协作者
+- **URL**: `/api/documents/{documentId}/collaborators`
+- **Method**: `POST`
+- **Request Body**:
 ```json
 {
-  "userId": 2,
-  "permission": "READ"   // "READ" 或 "WRITE" (大写)
+  "userId": "用户ID (必选)",
+  "permission": "权限类型 (READ/WRITE) (必选)"
 }
 ```
-- 响应:
+- **Response**:
 ```json
 {
-  "code": 0,
-  "message": "添加协作者成功",
-  "data": { /* CollaboratorResponseDTO */ }
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "id": "协作者ID",
+    "documentId": "文档ID",
+    "userId": "用户ID",
+    "permission": "权限类型 (READ/WRITE)",
+    "joinedAt": "加入时间"
+  }
 }
 ```
 
-4.3 移除协作者
-- URL: `DELETE /api/documents/{documentId}/collaborators/{userId}`
-- 请求头: `Authorization: Bearer <token>`
-- 响应:
+### 4.3 移除协作者
+- **URL**: `/api/documents/{documentId}/collaborators/{userId}`
+- **Method**: `DELETE`
+- **Parameters**:
+  - `documentId` (path, 必选): 文档ID
+  - `userId` (path, 必选): 用户ID
+- **Response**: 无
+
+### 4.4 加入共享文档
+- **URL**: `/api/documents/{documentId}/join`
+- **Method**: `POST`
+- **Request Body**: 无
+- **Response**:
+``json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "id": "协作者ID",
+    "documentId": "文档ID",
+    "userId": "用户ID",
+    "permission": "权限类型 (READ/WRITE)",
+    "joinedAt": "加入时间"
+  }
+}
+```
+
+### 4.5 更新协作者权限
+- **URL**: `/api/documents/{documentId}/collaborators/{userId}/permission`
+- **Method**: `PUT`
+- **Request Body**:
 ```json
 {
-  "code": 0,
-  "message": "移除协作者成功",
+  "permission": "权限类型 (READ/WRITE) (必选)"
+}
+```
+- **Response**:
+``json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "id": "协作者ID",
+    "documentId": "文档ID",
+    "userId": "用户ID",
+    "permission": "权限类型 (READ/WRITE)",
+    "joinedAt": "加入时间"
+  }
+}
+```
+
+---
+
+## 典型使用场景
+
+### 场景1：用户通过分享链接加入文档
+1. 文档拥有者分享文档链接（包含文档ID）
+2. 其他用户点击链接后，前端调用 `POST /api/documents/{documentId}/join`
+3. 用户自动成为文档的协作者，获得READ权限
+4. 用户可以查看文档内容
+
+### 场景2：管理员给协作者赋予写权限
+1. 文档拥有者或具有写权限的协作者查看协作者列表
+2. 选择某个具有READ权限的协作者
+3. 调用 `PUT /api/documents/{documentId}/collaborators/{userId}/permission` 更新权限为WRITE
+4. 该协作者现在可以编辑文档内容
+
+---
+
+## 错误处理
+
+所有接口都遵循统一的错误响应格式：
+
+```json
+{
+  "code": 400,
+  "message": "错误信息描述",
   "data": null
 }
 ```
+
+**常见错误：**
+- `用户未登录或 token 无效` - token无效或已过期
+- `文档不存在` - 文档ID无效或文档已被删除
+- `文档拥有者无需加入协作者列表` - 拥有者尝试加入自己的文档
+- `您已经是该文档的协作者` - 重复加入
+- `该用户不是协作者` - 尝试更新不存在的协作者权限
+- `无权更新协作者权限` - 当前用户没有足够的权限
+- `权限值无效，只能是 'read' 或 'write'` - permission参数值不正确
+
+
 

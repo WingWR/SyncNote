@@ -18,6 +18,20 @@ public class MinIOStorageServiceImpl implements IStorageService {
     private final String defaultBucket;
 
     public MinIOStorageServiceImpl(MinioConfig minioConfig) {
+        // 验证配置参数
+        if (minioConfig.getEndpoint() == null || minioConfig.getEndpoint().isEmpty()) {
+            throw new IllegalArgumentException("MinIO endpoint 配置不能为空，请检查 application-dev.yml 中的 storage.minio.endpoint 配置");
+        }
+        if (minioConfig.getAccessKey() == null || minioConfig.getAccessKey().isEmpty()) {
+            throw new IllegalArgumentException("MinIO accessKey 配置不能为空，请检查 application-dev.yml 中的 storage.minio.accessKey 配置");
+        }
+        if (minioConfig.getSecretKey() == null || minioConfig.getSecretKey().isEmpty()) {
+            throw new IllegalArgumentException("MinIO secretKey 配置不能为空，请检查 application-dev.yml 中的 storage.minio.secretKey 配置");
+        }
+        if (minioConfig.getBucket() == null || minioConfig.getBucket().isEmpty()) {
+            throw new IllegalArgumentException("MinIO bucket 配置不能为空，请检查 application-dev.yml 中的 storage.minio.bucket 配置");
+        }
+        
         this.minioClient = MinioClient.builder()
                 .endpoint(minioConfig.getEndpoint())
                 .credentials(minioConfig.getAccessKey(), minioConfig.getSecretKey())

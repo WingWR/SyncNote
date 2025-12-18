@@ -1,10 +1,10 @@
 spring:
   profiles:
-    active: dev # ????dev??
+    active: dev # 默认激活dev环境
   application:
     name: syncnote-document
 
-# ???????profile???????
+# 默认配置（可被profile特定配置覆盖）
 storage:
   minio:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
