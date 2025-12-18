@@ -13,7 +13,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/document")
+@RequestMapping("/api/documents")
 public class DocumentController {
     @Autowired
     private IDocumentService documentService;
@@ -32,7 +32,7 @@ public class DocumentController {
      * 3.2 获取单个文档
      */
     @GetMapping("/{id}")
-    public ApiResponse<DocumentDetailDTO> getDocumentById(@PathVariable Long id,
+    public ApiResponse<DocumentDetailDTO> getDocumentById(@PathVariable("id") Long id,
                                                        @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
         DocumentDetailDTO document = documentService.getDocumentById(id, token);
@@ -64,7 +64,7 @@ public class DocumentController {
      * @param authHeader 认证令牌
      */
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteDocument(@PathVariable Long id,
+    public ApiResponse<Void> deleteDocument(@PathVariable("id") Long id,
                                             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
         documentService.deleteDocument(id, token);
@@ -114,7 +114,7 @@ public class DocumentController {
      */
     @DeleteMapping("/trash/{id}")
     public ApiResponse<Void> permanentlyDeleteDocument(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
         documentService.permanentlyDeleteDocument(id, token);
