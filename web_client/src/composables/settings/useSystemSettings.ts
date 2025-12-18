@@ -1,6 +1,6 @@
-import { ref, reactive, watch } from 'vue'
+import { ref } from 'vue'
 import { useUserStore } from '../../stores/user'
-import { updateUser, logout } from '../../api/user'
+import { logout } from '../../api/user'
 import { useRouter } from 'vue-router'
 
 export function useSystemSettings() {
@@ -8,33 +8,6 @@ export function useSystemSettings() {
   const router = useRouter()
 
   const showSettings = ref(false)
-  const showEditDialog = ref(false)
-  const editForm = reactive({
-    username: '',
-    email: '',
-    avatar: ''
-  })
-
-  // 自动同步当前用户信息到编辑表单
-  watch(showEditDialog, (show) => {
-    if (show && userStore.currentUser) {
-      editForm.username = userStore.currentUser.username
-      editForm.email = userStore.currentUser.email
-      editForm.avatar = userStore.currentUser.avatar
-    }
-  })
-
-  async function handleUpdateUser() {
-    try {
-      if (!userStore.currentUser) return
-      const updatedUser = await updateUser(editForm)
-      userStore.setUser(updatedUser)
-      showEditDialog.value = false
-    } catch (error) {
-      console.error('更新用户信息失败:', error)
-      alert('更新用户信息失败')
-    }
-  }
 
   async function handleLogout() {
     try {
@@ -50,10 +23,7 @@ export function useSystemSettings() {
 
   return {
     showSettings,
-    showEditDialog,
-    editForm,
     userStore,
-    handleUpdateUser,
     handleLogout
   }
 }
