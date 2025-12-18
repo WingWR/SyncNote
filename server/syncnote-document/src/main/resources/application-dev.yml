@@ -1,6 +1,6 @@
 storage:
   minio:
     endpoint: http://localhost:9000
-    access-key: minioadmin
-    secret-key: minioadmin
+    access-key: admin
+    secret-key: admin123
     bucket: syncnote-documents
