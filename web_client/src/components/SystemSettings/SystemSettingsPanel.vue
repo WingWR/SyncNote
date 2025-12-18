@@ -37,7 +37,7 @@
               </div>
             </div>
             <button
-              @click="showEditDialog = true"
+              @click="openEditDialog"
               class="w-full px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             >
               修改用户信息
@@ -54,29 +54,25 @@
       </div>
     </Transition>
 
-    <!-- 编辑用户信息 -->
-    <UserEditDialog
-      :show-edit-dialog="showEditDialog"
-      :form="editForm"
-      @save="handleUpdateUser"
-      @close="showEditDialog = false"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { Settings, X } from 'lucide-vue-next'
 import { useSystemSettings } from '../../composables/settings/useSystemSettings'
-import UserEditDialog from './UserEditDialog.vue'
 
 const {
   showSettings,
-  showEditDialog,
-  editForm,
   userStore,
-  handleUpdateUser,
   handleLogout
 } = useSystemSettings()
+
+function openEditDialog() {
+  // 调用全局函数打开编辑对话框
+  if ((window as any).openUserEditDialog) {
+    (window as any).openUserEditDialog()
+  }
+}
 </script>
 
 <style scoped>

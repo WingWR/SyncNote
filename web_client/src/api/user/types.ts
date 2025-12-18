@@ -13,7 +13,7 @@ export interface RegisterRequest {
 
 export interface UpdateUserRequest {
   username?: string
-  email?: string
+  password?: string
   avatar?: string
 }
 

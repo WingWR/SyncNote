@@ -1,8 +1,8 @@
 <template>
   <button
     @click="onClick"
-    class="flex flex-col items-center gap-1 p-3 mx-2 mb-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-    :class="{ 'bg-blue-100 text-blue-700': active }"
+    class="flex flex-col items-center gap-1 p-3 mx-2 mb-2 text-gray-700 hover:bg-black/5 rounded-xl transition-all duration-300 transform hover:scale-105"
+    :class="{ 'bg-black/10 text-black': active }"
     :title="title"
   >
     <component :is="icon" :size="24" />
