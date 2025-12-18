@@ -31,3 +31,11 @@ jwt:
 
   # Redis 中存储 token 的前缀
   redis-prefix: "TOKEN:"
+
+logging:
+  level:
+    root: INFO
+    # 打开对 JWT 解析和过滤器的详细日志，便于排查 403/认证问题
+    com.syncnote.syncnoteboot.filter.JwtRequestFilter: DEBUG
+    com.syncnote.util.JWT: DEBUG
+    org.springframework.security: DEBUG
