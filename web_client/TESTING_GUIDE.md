@@ -1,13 +1,12 @@
 # 文档编辑页面测试指南
 
-本文档提供了文档编辑页面的完整测试方法，包括手动测试和自动化测试。
+本文档提供了文档编辑页面的完整手动测试方法。
 
 ## 目录
 
 1. [手动测试步骤](#手动测试步骤)
 2. [测试数据准备](#测试数据准备)
-3. [自动化测试](#自动化测试)
-4. [测试场景清单](#测试场景清单)
+3. [测试场景清单](#测试场景清单)
 
 ---
 
@@ -182,53 +181,6 @@ window.mockDocumentApi = {
       joinedAt: new Date().toISOString()
     }
   ]
-}
-```
-
----
-
-## 自动化测试
-
-### 安装测试依赖
-
-```bash
-npm install -D vitest @vue/test-utils @vitest/ui jsdom
-```
-
-### 运行测试
-
-```bash
-# 运行所有测试
-npm run test
-
-# 运行测试并查看覆盖率
-npm run test:coverage
-
-# 以 watch 模式运行
-npm run test:watch
-```
-
-### 测试文件结构
-
-```
-web_client/
-├── src/
-│   └── views/
-│       ├── DocumentEditor.vue
-│       └── __tests__/
-│           └── DocumentEditor.test.ts
-└── vitest.config.ts
-```
-
-### 添加测试脚本到 package.json
-
-```json
-{
-  "scripts": {
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
-    "test:watch": "vitest --watch"
-  }
 }
 ```
 

@@ -1,19 +1,15 @@
 <template>
-  <div class="flex h-screen bg-gray-50">
+  <div class="flex h-screen bg-gradient-to-br from-white via-gray-50 to-white">
     <!-- 左侧边栏 -->
-    <aside class="w-16 bg-white border-r border-gray-200 flex flex-col relative shrink-0">
-      <!-- 回到主页 -->
-      <div class="p-2 border-b border-gray-200 shrink-0">
+    <aside class="w-16 bg-white/95 backdrop-blur-sm border-r border-gray-100 flex flex-col relative shrink-0 shadow-lg rounded-r-2xl">
+      <!-- 功能入口 -->
+      <div class="flex-1 flex flex-col py-2 overflow-y-auto">
         <SidebarButton
           title="回到主页"
           :icon="Home"
           :active="false"
           :onClick="goHome"
         />
-      </div>
-
-      <!-- 功能入口 -->
-      <div class="flex-1 flex flex-col py-2 overflow-y-auto">
         <SidebarButton
           title="文档管理"
           :icon="FilePlus"
