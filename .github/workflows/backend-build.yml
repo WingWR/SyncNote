@@ -16,10 +16,10 @@ jobs:
     name: Run Backend Tests
     runs-on: ubuntu-latest
 
-    # 所有 run 命令默认都在 ./server 目录下执行
+    # 所有 run 命令默认都在 server 目录下执行
     defaults:
       run:
-        working-directory: ./server 
+        working-directory: server 
 
     steps:
       # 1. 检出代码
@@ -46,14 +46,6 @@ jobs:
       - name: Build multi-module project
         run: ./mvnw clean install -B
 
-      # 4. 启动后端模块并测试健康接口
-      - name: Start backend module
-        run: |
-          cd server/syncnote-boot
-          ./mvnw spring-boot:run
-
-      # 5. 运行构建、测试和验证流程
-      # 使用 'verify' 命令：它会执行编译、单元测试，并确保构建通过。
-      # 只有所有测试通过，才会成功完成。
-      - name: Run Build and Tests
-        run: ./mvnw clean verify
+      # 4. Build & Test all modules
+      - name: Build and Verify Backend
+        run: ./mvnw clean verify -B
