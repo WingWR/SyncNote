@@ -51,7 +51,7 @@
       <p class="text-sm text-gray-600">
         还没有账号？
         <button 
-          @click="toggleMode"
+          @click="props.toggleMode"
           class="ml-1 text-black font-semibold hover:underline transition-all duration-300 relative group"
         >
           立即注册
