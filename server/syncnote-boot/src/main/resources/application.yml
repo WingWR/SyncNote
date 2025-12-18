@@ -11,3 +11,23 @@ spring:
       port: 6379
       password: Software007@
       database: 0
+      connect-timeout: 5000
+      timeout: 2000
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
+    # 如果使用的是 Spring Boot 3.x，建议增加以下配置以确保初始化顺序
+    jpa:
+      defer-datasource-initialization: false
+
+jwt:
+  # Token 密钥（请替换为生产环境的安全随机字符串）
+  secret-key: "dsaiuohdsafbdsjkfd23762163jifbd2"
+
+  # Token 持续时间（毫秒），默认 12 小时
+  expiration-ms: 43200000
+
+  # Redis 中存储 token 的前缀
+  redis-prefix: "TOKEN:"
