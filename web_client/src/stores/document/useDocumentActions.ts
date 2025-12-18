@@ -29,7 +29,7 @@ export function useDocumentActions(state: {
     }
   }
 
-  function removeDocument(docId: number) {
+  function removeDocument(docId: string) {
     state.documents.value = state.documents.value.filter(d => d.id !== docId)
   }
 

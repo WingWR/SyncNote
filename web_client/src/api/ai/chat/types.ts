@@ -1,6 +1,6 @@
 export interface AIChatRequest {
   message: string
-  documentId?: number
+  documentId?: string
   modelId: string
   mode: 'chat' | 'agent'
   context?: string

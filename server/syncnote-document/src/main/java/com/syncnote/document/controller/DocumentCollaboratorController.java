@@ -35,7 +35,7 @@ public class DocumentCollaboratorController {
      */
     @GetMapping("/{documentId}/collaborators")
     public ApiResponse<List<CollaboratorResponseDTO>> getCollaborators(
-            @PathVariable Long documentId,
+            @PathVariable("documentId") Long documentId,
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
         List<CollaboratorResponseDTO> collaborators = collaboratorService.getCollaborators(documentId, token);
@@ -54,7 +54,7 @@ public class DocumentCollaboratorController {
      */
     @PostMapping("/{documentId}/collaborators")
     public ApiResponse<CollaboratorResponseDTO> addCollaborator(
-            @PathVariable Long documentId,
+            @PathVariable("documentId") Long documentId,
             @Valid @RequestBody AddCollaboratorRequestDTO request,
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
@@ -93,7 +93,7 @@ public class DocumentCollaboratorController {
      */
     @PostMapping("/{documentId}/join")
     public ApiResponse<CollaboratorResponseDTO> joinSharedDocument(
-            @PathVariable Long documentId,
+            @PathVariable("documentId") Long documentId,
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
         CollaboratorResponseDTO collaborator = collaboratorService.joinSharedDocument(documentId, token);
