@@ -4,14 +4,14 @@
     <div class="flex items-center justify-between px-6 py-3 border-b border-gray-200">
       <div class="flex items-center gap-4">
         <h2 class="text-lg font-semibold text-gray-900">
-          {{ documentStore.currentDocument?.name || '未命名文档' }}
+          {{ documentStore.currentDocument?.fileName || '未命名文档' }}
         </h2>
         <span class="text-sm text-gray-500">
-          {{ documentStore.currentDocument?.type.toUpperCase() }}
+          {{ documentStore.currentDocument?.fileType.toUpperCase() }}
         </span>
       </div>
-      
-      <div class="flex items-center gap-4">
+
+      <div class="flex items-center gap-3">
         <!-- 协作人数显示 -->
         <div class="flex items-center gap-2">
           <Users :size="18" class="text-gray-500" />
@@ -23,23 +23,25 @@
           </span>
           <!-- 协作人头像 -->
           <div class="flex -space-x-2">
-            <div
-              v-for="(collab, index) in visibleCollaborators"
-              :key="collab.id"
+            <div v-for="(collab, index) in visibleCollaborators" :key="collab.id"
               class="w-6 h-6 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-white text-xs"
-              :title="`用户 ${collab.userId}`"
-            >
+              :title="`用户 ${collab.userId}`">
               {{ index + 1 }}
             </div>
           </div>
         </div>
-        
-        <!-- 添加协作者按钮 -->
-        <button
-          @click="showAddCollaboratorDialog = true"
-          class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          添加协作者
+
+        <!-- 分享按钮 -->
+        <button @click="showShareDialog = true"
+          class="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1">
+          <Share2 :size="16" />
+          分享
+        </button>
+
+        <!-- 管理协作者按钮 -->
+        <button @click="showCollaboratorsDialog = true"
+          class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          管理协作者
         </button>
       </div>
     </div>
@@ -47,70 +49,98 @@
     <!-- 编辑器区域 -->
     <div class="flex-1 overflow-auto p-6">
       <!-- TipTap编辑器（用于.md格式） -->
-      <div
-        v-if="documentStore.currentDocument?.type === 'md'"
-        ref="editorContainer"
-        class="prose max-w-none focus:outline-none"
-      ></div>
-      
+      <div v-if="documentStore.currentDocument?.fileType === 'md'" ref="editorContainer"
+        class="prose max-w-none focus:outline-none"></div>
+
       <!-- 文本编辑器（用于.txt格式） -->
-      <textarea
-        v-else-if="documentStore.currentDocument?.type === 'txt'"
-        v-model="textContent"
-        @input="handleTextInput"
-        class="w-full h-full border-none outline-none resize-none font-mono text-sm"
-        placeholder="开始输入..."
-      ></textarea>
-      
+      <textarea v-else-if="documentStore.currentDocument?.fileType === 'txt'" v-model="textContent"
+        @input="handleTextInput" class="w-full h-full border-none outline-none resize-none font-mono text-sm"
+        placeholder="开始输入..."></textarea>
+
       <!-- 其他格式提示 -->
-      <div
-        v-else
-        class="flex items-center justify-center h-full text-gray-400"
-      >
-        <p>{{ documentStore.currentDocument?.type.toUpperCase() }} 格式的编辑功能正在开发中...</p>
+      <div v-else class="flex items-center justify-center h-full text-gray-400">
+        <p>{{ documentStore.currentDocument?.fileType.toUpperCase() }} 格式的编辑功能正在开发中...</p>
       </div>
     </div>
 
+    <!-- 分享链接对话框 -->
+    <div v-if="showShareDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      @click.self="showShareDialog = false">
+      <div class="bg-white rounded-lg p-6 w-[500px]">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold flex items-center gap-2">
+            <Share2 :size="20" class="text-green-600" />
+            分享文档
+          </h3>
+          <button @click="showShareDialog = false" class="text-gray-400 hover:text-gray-600">
+            ×
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm text-gray-600 mb-2">
+              任何拥有此链接的人都可以通过该链接加入为协作者（只读权限）
+            </p>
+            <div class="flex gap-2">
+              <input :value="shareLink" readonly
+                class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50 font-mono" />
+              <button @click="copyShareLink"
+                class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap">
+                复制链接
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-xs text-blue-800">
+              <strong>提示：</strong>通过链接加入的用户默认获得只读权限，您可以在"管理协作者"中调整权限。
+            </p>
+          </div>
+        </div>
+
+        <div class="flex justify-end mt-4">
+          <button @click="showShareDialog = false"
+            class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 协作者管理对话框 -->
+    <CollaboratorsManagementDialog v-model:visible="showCollaboratorsDialog"
+      :document-id="documentStore.currentDocument?.id || null"
+      :document-owner-id="documentStore.currentDocument?.ownerId"
+      :current-user-permission="documentStore.currentDocument?.permission"
+      @add-collaborator="showAddCollaboratorDialog = true" @refresh="refreshCollaborators" />
+
     <!-- 添加协作者对话框 -->
-    <div
-      v-if="showAddCollaboratorDialog"
+    <div v-if="showAddCollaboratorDialog"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      @click.self="showAddCollaboratorDialog = false"
-    >
+      @click.self="showAddCollaboratorDialog = false">
       <div class="bg-white rounded-lg p-6 w-96">
         <h3 class="text-lg font-semibold mb-4">添加协作者</h3>
         <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">用户ID</label>
-            <input
-              v-model.number="newCollaboratorUserId"
-              type="number"
-              placeholder="请输入用户ID"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            />
+            <input v-model.number="newCollaboratorUserId" type="number" placeholder="请输入用户ID"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">权限</label>
-            <select
-              v-model="newCollaboratorPermission"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            >
+            <select v-model="newCollaboratorPermission" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
               <option value="read">只读</option>
               <option value="write">可编辑</option>
             </select>
           </div>
         </div>
         <div class="flex gap-2 justify-end mt-4">
-          <button
-            @click="showAddCollaboratorDialog = false"
-            class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
+          <button @click="showAddCollaboratorDialog = false"
+            class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
             取消
           </button>
-          <button
-            @click="handleAddCollaborator"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
+          <button @click="handleAddCollaborator" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             添加
           </button>
         </div>
@@ -122,7 +152,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { Users } from 'lucide-vue-next'
+import { Users, Share2 } from 'lucide-vue-next'
 import { useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Collaboration from '@tiptap/extension-collaboration'
@@ -132,6 +162,7 @@ import { WebsocketProvider } from 'y-websocket'
 import { useDocumentStore } from '../../stores/document/index'
 import { getDocument, getCollaborators, addCollaborator } from '../../api/document'
 import { useUserStore } from '../../stores/user'
+import CollaboratorsManagementDialog from './components/CollaboratorsManagementDialog.vue'
 
 const route = useRoute()
 const documentStore = useDocumentStore()
@@ -139,10 +170,17 @@ const userStore = useUserStore()
 
 const editorContainer = ref<HTMLElement | null>(null)
 const textContent = ref('')
+const showCollaboratorsDialog = ref(false)
 const showAddCollaboratorDialog = ref(false)
-const newCollaboratorUserId = ref<number | null>(null)
-const newCollaboratorPermission = ref<'read' | 'write'>('read')
+const showShareDialog = ref(false)
+const newCollaboratorUserId = ref<string | null>(null)
+const newCollaboratorPermission = ref<'READ' | 'WRITE'>('READ')
 const maxVisibleCollaborators = 5
+const shareLink = computed(() => {
+  if (!documentStore.currentDocument) return ''
+  const baseUrl = window.location.origin
+  return `${baseUrl}/home/document/join/${documentStore.currentDocument.id}`
+})
 
 let ydoc: Y.Doc | null = null
 let provider: WebsocketProvider | null = null
@@ -154,35 +192,42 @@ const visibleCollaborators = computed(() => {
 
 // 加载文档
 async function loadDocument() {
-  const docId = parseInt(route.params.id as string)
+  const docId = route.params.id as string
   if (!docId) return
 
   try {
-    const document = await getDocument(docId)
-    documentStore.setCurrentDocument(document)
-    
-    const collaborators = await getCollaborators(docId)
-    documentStore.setCollaborators(collaborators)
-    
-    // 初始化Y.js协同编辑
-    if (document.type === 'md') {
-      initCollaborativeEditor(docId)
-    } else if (document.type === 'txt') {
-      initTextEditor(docId)
+    const docResponse = await getDocument(docId)
+    if (docResponse.code === 200) {
+      documentStore.setCurrentDocument(docResponse.data)
+
+      const collaboratorsResponse = await getCollaborators(docId)
+      if (collaboratorsResponse.code === 200) {
+        documentStore.setCollaborators(collaboratorsResponse.data)
+      }
+
+      // 初始化Y.js协同编辑
+      if (docResponse.data.fileType === 'md') {
+        initCollaborativeEditor(docId)
+      } else if (docResponse.data.fileType === 'txt') {
+        initTextEditor(docId)
+      }
+    } else {
+      alert(docResponse.message || '加载文档失败')
     }
   } catch (error) {
     console.error('加载文档失败:', error)
+    alert('加载文档失败')
   }
 }
 
 // 初始化Markdown协同编辑器
-async function initCollaborativeEditor(docId: number) {
+async function initCollaborativeEditor(docId: string) {
   await nextTick()
   if (!editorContainer.value) return
 
   ydoc = new Y.Doc()
   const ytext = ydoc.getText('content')
-  
+
   // WebSocket连接（需要根据实际后端地址配置）
   const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:8080/ws/document/${docId}`
   provider = new WebsocketProvider(wsUrl, `document-${docId}`, ydoc)
@@ -207,10 +252,10 @@ async function initCollaborativeEditor(docId: number) {
 }
 
 // 初始化文本编辑器
-function initTextEditor(docId: number) {
+function initTextEditor(docId: string) {
   ydoc = new Y.Doc()
   const ytext = ydoc.getText('content')
-  
+
   const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:8080/ws/document/${docId}`
   provider = new WebsocketProvider(wsUrl, `document-${docId}`, ydoc)
 
@@ -226,10 +271,10 @@ function initTextEditor(docId: number) {
 // 处理文本输入
 function handleTextInput() {
   if (!ydoc || !textContent.value) return
-  
+
   const ytext = ydoc.getText('content')
   const currentContent = ytext.toString()
-  
+
   if (textContent.value !== currentContent) {
     // 简单的同步逻辑（实际应该使用Y.js的更新机制）
     ytext.delete(0, currentContent.length)
@@ -242,21 +287,64 @@ async function handleAddCollaborator() {
   if (!newCollaboratorUserId.value || !documentStore.currentDocument) return
 
   try {
-    await addCollaborator(documentStore.currentDocument.id, {
+    const response = await addCollaborator(documentStore.currentDocument.id, {
       userId: newCollaboratorUserId.value,
       permission: newCollaboratorPermission.value
     })
-    
-    // 重新加载协作者列表
-    const collaborators = await getCollaborators(documentStore.currentDocument.id)
-    documentStore.setCollaborators(collaborators)
-    
-    showAddCollaboratorDialog.value = false
-    newCollaboratorUserId.value = null
+
+    if (response.code === 200) {
+      // 重新加载协作者列表
+      await refreshCollaborators()
+
+      showAddCollaboratorDialog.value = false
+      newCollaboratorUserId.value = null
+      newCollaboratorPermission.value = 'READ'
+    } else {
+      alert(response.message || '添加协作者失败')
+    }
   } catch (error) {
     console.error('添加协作者失败:', error)
     alert('添加协作者失败')
   }
+}
+
+// 刷新协作者列表
+async function refreshCollaborators() {
+  if (!documentStore.currentDocument) return
+
+  try {
+    const collaboratorsResponse = await getCollaborators(documentStore.currentDocument.id)
+    if (collaboratorsResponse.code === 200) {
+      documentStore.setCollaborators(collaboratorsResponse.data)
+    }
+  } catch (error) {
+    console.error('刷新协作者列表失败:', error)
+  }
+}
+
+// 复制分享链接
+function copyShareLink() {
+  if (!shareLink.value) return
+
+  navigator.clipboard.writeText(shareLink.value).then(() => {
+    alert('分享链接已复制到剪贴板！')
+  }).catch((error) => {
+    console.error('复制失败:', error)
+    // 备用方案：使用传统方法
+    const textarea = document.createElement('textarea')
+    textarea.value = shareLink.value
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      alert('分享链接已复制到剪贴板！')
+    } catch (err) {
+      alert('复制失败，请手动复制链接')
+    }
+    document.body.removeChild(textarea)
+  })
 }
 
 watch(() => route.params.id, loadDocument, { immediate: true })
@@ -335,4 +423,3 @@ onUnmounted(() => {
   padding: 0;
 }
 </style>
-
