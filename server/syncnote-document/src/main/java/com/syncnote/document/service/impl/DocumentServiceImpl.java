@@ -3,8 +3,7 @@ package com.syncnote.document.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
-import com.syncnote.document.dto.response.DocumentListItemResponseDTO;
-import com.syncnote.document.dto.response.DocumentResponseDTO;
+import com.syncnote.document.dto.response.DocumentDTO;
 import com.syncnote.document.mapper.DocumentCollaboratorMapper;
 import com.syncnote.document.mapper.DocumentMapper;
 import com.syncnote.document.model.DocStatus;
@@ -46,7 +45,7 @@ public class DocumentServiceImpl implements IDocumentService {
     private StorageConfigProvider storageConfigProvider;
 
     @Override
-    public List<DocumentListItemResponseDTO> getDocumentList(String token) {
+    public List<DocumentDTO> getDocumentList(String token) {
         // 从token中解析用户ID
         Long userId = CurrentUserContext.getUserId();
 
@@ -85,7 +84,7 @@ public class DocumentServiceImpl implements IDocumentService {
 
         // 转换为DTO并设置权限
         return documents.stream().map(document -> {
-            DocumentListItemResponseDTO dto = new DocumentListItemResponseDTO();
+            DocumentDTO dto = new DocumentDTO();
             BeanUtils.copyProperties(document, dto);
             dto.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
 
@@ -148,7 +147,7 @@ public class DocumentServiceImpl implements IDocumentService {
     }
 
     @Override
-    public DocumentResponseDTO createDocument(CreateDocumentRequestDTO dto, String token) {
+    public DocumentDTO createDocument(CreateDocumentRequestDTO dto, String token) {
         Long userId = CurrentUserContext.getUserId();
         if (userId == null) {
             throw new IllegalArgumentException("用户未登录或 token 无效");
@@ -181,15 +180,16 @@ public class DocumentServiceImpl implements IDocumentService {
         documentCollaboratorMapper.insert(collaborator);
 
         // 转换为DTO
-        DocumentResponseDTO responseDTO = new DocumentResponseDTO();
+        DocumentDTO responseDTO = new DocumentDTO();
         BeanUtils.copyProperties(document, responseDTO);
+        responseDTO.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
         responseDTO.setPermission(DocumentCollaborator.Permission.WRITE.toValue());
 
         return responseDTO;
     }
 
     @Override
-    public DocumentResponseDTO uploadDocument(MultipartFile file, Long parentId, String token) {
+    public DocumentDTO uploadDocument(MultipartFile file, Long parentId, String token) {
         Long userId = CurrentUserContext.getUserId();
         if (userId == null) {
             throw new IllegalArgumentException("用户未登录或 token 无效");
@@ -239,8 +239,9 @@ public class DocumentServiceImpl implements IDocumentService {
         documentCollaboratorMapper.insert(collaborator);
 
         // 转换为DTO
-        DocumentResponseDTO responseDTO = new DocumentResponseDTO();
+        DocumentDTO responseDTO = new DocumentDTO();
         BeanUtils.copyProperties(document, responseDTO);
+        responseDTO.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
         responseDTO.setPermission(DocumentCollaborator.Permission.WRITE.toValue());
 
         return responseDTO;
@@ -271,7 +272,7 @@ public class DocumentServiceImpl implements IDocumentService {
     }
 
     @Override
-    public List<DocumentListItemResponseDTO> getTrashDocumentList(String token) {
+    public List<DocumentDTO> getTrashDocumentList(String token) {
         Long userId = CurrentUserContext.getUserId();
         if (userId == null) {
             throw new IllegalArgumentException("用户未登录或 token 无效");
@@ -287,7 +288,7 @@ public class DocumentServiceImpl implements IDocumentService {
 
         // 转换为DTO
         return documents.stream().map(document -> {
-            DocumentListItemResponseDTO dto = new DocumentListItemResponseDTO();
+            DocumentDTO dto = new DocumentDTO();
             BeanUtils.copyProperties(document, dto);
             dto.setIsDeleted(true); // 回收站中的文档都是已删除状态
             dto.setPermission(DocumentCollaborator.Permission.WRITE.toValue()); // 拥有者始终有WRITE权限

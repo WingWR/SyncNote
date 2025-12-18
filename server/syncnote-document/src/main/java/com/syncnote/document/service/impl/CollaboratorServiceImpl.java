@@ -2,6 +2,7 @@ package com.syncnote.document.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.syncnote.document.dto.request.AddCollaboratorRequestDTO;
+import com.syncnote.document.dto.request.UpdateCollaboratorPermissionRequestDTO;
 import com.syncnote.document.dto.response.CollaboratorResponseDTO;
 import com.syncnote.document.mapper.DocumentCollaboratorMapper;
 import com.syncnote.document.mapper.DocumentMapper;
@@ -191,6 +192,117 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
 
         // 删除协作者记录
         documentCollaboratorMapper.deleteById(collaboratorToRemove.getId());
+    }
+
+    @Override
+    public CollaboratorResponseDTO joinSharedDocument(Long documentId, String token) {
+        Long userId = CurrentUserContext.getUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("用户未登录或 token 无效");
+        }
+
+        // 验证文档是否存在
+        Document document = documentMapper.selectById(documentId);
+        if (document == null || DocStatus.Deleted.equals(document.getStatus())) {
+            throw new RuntimeException("文档不存在");
+        }
+
+        // 检查用户是否已经是文档拥有者
+        if (document.getOwnerId().equals(userId)) {
+            throw new RuntimeException("文档拥有者无需加入协作者列表");
+        }
+
+        // 检查用户是否已经是协作者
+        DocumentCollaborator existingCollaborator = documentCollaboratorMapper.selectOne(
+                new QueryWrapper<DocumentCollaborator>()
+                        .eq("document_id", documentId)
+                        .eq("user_id", userId)
+        );
+
+        if (existingCollaborator != null) {
+            throw new RuntimeException("您已经是该文档的协作者");
+        }
+
+        // 创建协作者记录，默认为READ权限
+        DocumentCollaborator collaborator = new DocumentCollaborator();
+        collaborator.setDocumentId(documentId);
+        collaborator.setUserId(userId);
+        collaborator.setPermission(DocumentCollaborator.Permission.READ);
+        documentCollaboratorMapper.insert(collaborator);
+
+        // 转换为DTO
+        CollaboratorResponseDTO dto = new CollaboratorResponseDTO();
+        dto.setId(collaborator.getId());
+        dto.setDocumentId(collaborator.getDocumentId());
+        dto.setUserId(collaborator.getUserId());
+        dto.setPermission(collaborator.getPermission().toValue());
+        dto.setJoinedAt(collaborator.getCreatedAt());
+
+        return dto;
+    }
+
+    @Override
+    public CollaboratorResponseDTO updateCollaboratorPermission(Long documentId, Long userIdToUpdate, 
+                                                                UpdateCollaboratorPermissionRequestDTO request, String token) {
+        Long userId = CurrentUserContext.getUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("用户未登录或 token 无效");
+        }
+
+        // 验证文档是否存在
+        Document document = documentMapper.selectById(documentId);
+        if (document == null || DocStatus.Deleted.equals(document.getStatus())) {
+            throw new RuntimeException("文档不存在");
+        }
+
+        // 验证当前用户是否有权限更新协作者权限（只有文档拥有者或具有WRITE权限的协作者可以更新）
+        boolean canUpdate;
+        if (document.getOwnerId().equals(userId)) {
+            canUpdate = true;
+        } else {
+            DocumentCollaborator currentUserCollaborator = documentCollaboratorMapper.selectOne(
+                    new QueryWrapper<DocumentCollaborator>()
+                            .eq("document_id", documentId)
+                            .eq("user_id", userId)
+            );
+            canUpdate = currentUserCollaborator != null 
+                    && DocumentCollaborator.Permission.WRITE.equals(currentUserCollaborator.getPermission());
+        }
+
+        if (!canUpdate) {
+            throw new RuntimeException("无权更新协作者权限（只有文档拥有者或具有写权限的协作者可以更新）");
+        }
+
+        // 验证要更新的用户是否是协作者
+        DocumentCollaborator collaboratorToUpdate = documentCollaboratorMapper.selectOne(
+                new QueryWrapper<DocumentCollaborator>()
+                        .eq("document_id", documentId)
+                        .eq("user_id", userIdToUpdate)
+        );
+
+        if (collaboratorToUpdate == null) {
+            throw new RuntimeException("该用户不是协作者");
+        }
+
+        // 验证权限值
+        DocumentCollaborator.Permission newPermission = convertStringToPermission(request.getPermission());
+        if (newPermission == null) {
+            throw new IllegalArgumentException("权限值无效，只能是 'read' 或 'write'");
+        }
+
+        // 更新权限
+        collaboratorToUpdate.setPermission(newPermission);
+        documentCollaboratorMapper.updateById(collaboratorToUpdate);
+
+        // 转换为DTO
+        CollaboratorResponseDTO dto = new CollaboratorResponseDTO();
+        dto.setId(collaboratorToUpdate.getId());
+        dto.setDocumentId(collaboratorToUpdate.getDocumentId());
+        dto.setUserId(collaboratorToUpdate.getUserId());
+        dto.setPermission(collaboratorToUpdate.getPermission().toValue());
+        dto.setJoinedAt(collaboratorToUpdate.getCreatedAt());
+
+        return dto;
     }
 
     /**
