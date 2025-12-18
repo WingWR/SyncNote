@@ -2,8 +2,7 @@ package com.syncnote.document.controller;
 
 import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
-import com.syncnote.document.dto.response.DocumentListItemResponseDTO;
-import com.syncnote.document.dto.response.DocumentResponseDTO;
+import com.syncnote.document.dto.response.DocumentDTO;
 import com.syncnote.util.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +22,9 @@ public class DocumentController {
      * 3.1 获取文档列表
      */
     @GetMapping
-    public ApiResponse<List<DocumentListItemResponseDTO>> getDocumentList(@RequestHeader("Authorization") String authHeader) {
+    public ApiResponse<List<DocumentDTO>> getDocumentList(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
-        List<DocumentListItemResponseDTO> documents = documentService.getDocumentList(token);
+        List<DocumentDTO> documents = documentService.getDocumentList(token);
         return ApiResponse.succeed(documents, "获取文档列表成功");
     }
 
@@ -46,16 +45,16 @@ public class DocumentController {
      * 可通过 templateId 从模板创建文档
      */
     @PostMapping
-    public ApiResponse<DocumentResponseDTO> createDocument(@Valid @RequestBody CreateDocumentRequestDTO dto,
+    public ApiResponse<DocumentDTO> createDocument(@Valid @RequestBody CreateDocumentRequestDTO dto,
                                                            @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
-        DocumentResponseDTO document = documentService.createDocument(dto, token);
+        DocumentDTO document = documentService.createDocument(dto, token);
         return ApiResponse.succeed(document, "创建文档成功");
     }
 
     // TODO: 3.4 更新文档 - 待实现
     // @PutMapping("/{id}")
-    // public ApiResponse<DocumentResponseDTO> updateDocument(...)
+    // public ApiResponse<DocumentDTO> updateDocument(...)
 
     /**
      * 3.5 删除文档（软删除）
@@ -82,12 +81,12 @@ public class DocumentController {
      * @param authHeader 认证令牌
      */
     @PostMapping("/upload")
-    public ApiResponse<DocumentResponseDTO> uploadDocument(
+    public ApiResponse<DocumentDTO> uploadDocument(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "parentId", required = false) Long parentId,
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
-        DocumentResponseDTO document = documentService.uploadDocument(file, parentId, token);
+        DocumentDTO document = documentService.uploadDocument(file, parentId, token);
         return ApiResponse.succeed(document, "上传文档成功");
     }
 
@@ -98,10 +97,10 @@ public class DocumentController {
      * @param authHeader 认证令牌
      */
     @GetMapping("/trash")
-    public ApiResponse<List<DocumentListItemResponseDTO>> getTrashDocumentList(
+    public ApiResponse<List<DocumentDTO>> getTrashDocumentList(
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
-        List<DocumentListItemResponseDTO> documents = documentService.getTrashDocumentList(token);
+        List<DocumentDTO> documents = documentService.getTrashDocumentList(token);
         return ApiResponse.succeed(documents, "获取回收站文档列表成功");
     }
 
