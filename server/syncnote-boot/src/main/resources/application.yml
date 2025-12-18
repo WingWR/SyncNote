@@ -39,3 +39,5 @@ logging:
     com.syncnote.syncnoteboot.filter.JwtRequestFilter: DEBUG
     com.syncnote.util.JWT: DEBUG
     org.springframework.security: DEBUG
+    # 打开mapper 日志 查看 查询逻辑
+    # com.syncnote.document.mapper: DEBUG

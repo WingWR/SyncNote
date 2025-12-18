@@ -11,7 +11,7 @@ import { useUserStore } from '../../../stores/user'
 
 export function useMarkdownEditor(
   container: HTMLElement | null,
-  docId: number
+  docId: string
 ) {
   const userStore = useUserStore()
 

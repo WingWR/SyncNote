@@ -1,5 +1,7 @@
 package com.syncnote.document.dto.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.time.Instant;
@@ -11,11 +13,14 @@ import java.time.Instant;
  */
 @Data
 public class DocumentDTO {
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long ownerId;
     private String fileName;
     private String fileType;          // "txt" | "md" | "docx" | "pptx"
     private Long fileSize;
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long parentId;             // 父目录ID，可为null（根目录）
     private Boolean isDeleted;         // 是否已删除（软删除标记）
     private Instant createdAt;
