@@ -11,10 +11,10 @@ public class MinioConfig {
     @Value("${storage.minio.endpoint:http://localhost:9000}")
     private String endpoint; //端点URL地址
 
-    @Value("${storage.minio.accessKey:minioadmin}")
+    @Value("${storage.minio.accessKey:admin}")
     private String accessKey;//访问密钥，用户名
 
-    @Value("${storage.minio.secretKey:minioadmin}")
+    @Value("${storage.minio.secretKey:admin123}")
     private String secretKey;//私有密钥，密码
 
     @Value("${storage.minio.bucket:syncnote-documents}")
