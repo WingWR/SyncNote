@@ -27,10 +27,8 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">头像</label>
           <input
-            ref="fileInput"
             type="file"
             accept="image/*"
-            @change="handleFileChange"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-gray-50 file:text-gray-700"
           />
           <p class="text-xs text-gray-500 mt-1">支持 JPG、PNG、GIF 等图片格式</p>
@@ -55,7 +53,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 
 const {} = defineProps<{
   showEditDialog: boolean
@@ -68,15 +65,6 @@ const emit = defineEmits<{
   (e: 'save'): void
   (e: 'close'): void
 }>()
-
-const fileInput = ref<HTMLInputElement | null>(null)
-
-function handleFileChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0] || null
-  // 这里可以通过emit通知父组件文件已选择
-  // emit('file-selected', file)
-}
 
 function save() {
   emit('save')
