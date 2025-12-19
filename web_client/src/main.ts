@@ -19,7 +19,7 @@ if (isDev) {
   const userStore = useUserStore()
   // 创建测试用户
   const testUser = {
-    id: 1,
+    id: '1',
     username: '测试用户',
     email: 'test@example.com',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test',
@@ -35,8 +35,12 @@ const token = localStorage.getItem('token')
 if (token && !isDev) {
   const userStore = useUserStore()
   getCurrentUser()
-    .then(user => {
-      userStore.setUser(user)
+    .then(resp => {
+      if (resp && resp.code === 200) {
+        userStore.setUser(resp.data)
+      } else {
+        localStorage.removeItem('token')
+      }
     })
     .catch(() => {
       localStorage.removeItem('token')

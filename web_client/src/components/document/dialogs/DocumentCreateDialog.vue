@@ -3,9 +3,9 @@
     @click.self="close">
     <div class="bg-white rounded-lg p-6 w-96">
       <h3 class="text-lg font-semibold mb-4">新建文件</h3>
-      <input :value="name" @input="$emit('update:name', $event.target.value)" type="text" placeholder="请输入文档名称"
+      <input :value="name" @input="onNameInput" type="text" placeholder="请输入文档名称"
         class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3" />
-      <select :value="type" @change="$emit('update:type', $event.target.value)"
+      <select :value="type" @change="onTypeChange"
         class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4">
         <option value="txt">文本文件 (.txt)</option>
         <option value="md">Markdown (.md)</option>
@@ -32,5 +32,17 @@ const emit = defineEmits(['update:visible', 'update:name', 'update:type', 'creat
 
 function close() {
   emit('update:visible', false)
+}
+
+function onNameInput(e: Event) {
+  const target = e.target as HTMLInputElement | null
+  if (!target) return
+  emit('update:name', target.value)
+}
+
+function onTypeChange(e: Event) {
+  const target = e.target as HTMLSelectElement | null
+  if (!target) return
+  emit('update:type', target.value)
 }
 </script>
