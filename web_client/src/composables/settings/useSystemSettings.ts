@@ -1,6 +1,6 @@
-import { ref } from 'vue'
+import { ref, reactive,watch } from 'vue'
 import { useUserStore } from '../../stores/user'
-import { logout } from '../../api/user'
+import { logout, updateUser } from '../../api/user/service'
 import { useRouter } from 'vue-router'
 
 export function useSystemSettings() {
@@ -55,6 +55,9 @@ export function useSystemSettings() {
   return {
     showSettings,
     userStore,
-    handleLogout
+    handleLogout,
+    showEditDialog,
+    editForm,
+    handleUpdateUser
   }
 }
