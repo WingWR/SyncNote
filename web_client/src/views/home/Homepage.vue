@@ -4,18 +4,23 @@
       <FeatureCards />
 
       <!-- 👇 slot 必须放这里 -->
+      <template #dev-link>
+        <div v-if="isDev" class="mt-6 space-y-3">
+          <div>
+            <a href="/home/editor-test"
+              class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              🧪 测试编辑器样式（无需后端）
+            </a>
+          </div>
+        </div>
+      </template>
     </WelcomeSection>
-
-    <!-- API测试面板 -->
-    <div v-if="isDev && showApiTest"
-      class="fixed bottom-4 right-4 w-96 max-h-96 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-      <DocumentListTest />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import WelcomeSection from './WelcomeSection.vue'
 import FeatureCards from './FeatureCards.vue'
+
+const isDev = import.meta.env.DEV
 </script>
