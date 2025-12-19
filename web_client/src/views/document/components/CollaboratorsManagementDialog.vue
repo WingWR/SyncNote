@@ -67,7 +67,7 @@
                   ? 'bg-green-100 text-green-700'
                   : 'bg-gray-100 text-gray-700'
               ]">
-                <component :is="collaborator.permission === 'WRITE' ? 'EditIcon' : 'EyeIcon'" :size="12"
+                <component :is="collaborator.permission === 'WRITE' ? EditIcon : EyeIcon" :size="12"
                   class="inline mr-1" />
                 {{ collaborator.permission === 'WRITE' ? '可编辑' : '只读' }}
               </span>

@@ -10,10 +10,10 @@ export function useWorkspace() {
 
   const currentDocId = computed(() => {
     const docId = route.params.id
-    return docId ? parseInt(docId as string) : null
+    return (docId as string) || null
   })
 
-  function openDocument(docId: number) {
+  function openDocument(docId: string) {
     router.push(`/home/document/${docId}`)
   }
 
