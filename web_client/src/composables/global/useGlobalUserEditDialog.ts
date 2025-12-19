@@ -37,8 +37,8 @@ export function useGlobalUserEditDialog() {
                 updateData.password = editForm.password
             }
 
-            const updatedUser = await updateUser(updateData)
-            userStore.setUser(updatedUser)
+            const response = await updateUser(updateData)
+            userStore.setUser(response.data)
             showEditDialog.value = false
 
             // 清空表单
