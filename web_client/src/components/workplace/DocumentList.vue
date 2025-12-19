@@ -16,8 +16,8 @@
           ]"
         >
           <FileText :size="16" />
-          <span class="flex-1 truncate">{{ doc.name }}</span>
-          <span class="text-xs text-gray-400">{{ getFileTypeIcon(doc.type) }}</span>
+          <span class="flex-1 truncate">{{ doc.fileName }}</span>
+          <span class="text-xs text-gray-400">{{ getFileTypeIcon(doc.fileType) }}</span>
         </button>
       </div>
     </div>
@@ -38,7 +38,7 @@
           ]"
         >
           <FileText :size="16" />
-          <span class="flex-1 truncate">{{ doc.name }}</span>
+          <span class="flex-1 truncate">{{ doc.fileName }}</span>
           <Lock :size="14" class="text-gray-400" />
         </button>
       </div>
@@ -62,8 +62,8 @@ import type { Document } from '../../stores/document/types'
 const {} = defineProps<{
   documentsWithPermission: Document[]
   documentsWithoutPermission: Document[]
-  currentDocId: number | null
-  openDocument: (docId: number) => void
+  currentDocId: string | null
+  openDocument: (docId: string) => void
   getFileTypeIcon: (type: string) => string
 }>()
 </script>

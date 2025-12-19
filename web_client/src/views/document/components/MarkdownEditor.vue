@@ -26,7 +26,7 @@ let editorInstance:
  * 初始化编辑器
  */
 async function initEditor() {
-  const docId = Number(route.params.id)
+  const docId = route.params.id as string
   if (!docId || !editorContainer.value) return
 
   editorInstance = useMarkdownEditor(

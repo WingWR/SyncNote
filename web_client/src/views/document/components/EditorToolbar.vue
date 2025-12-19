@@ -2,9 +2,9 @@
   <div class="flex items-center justify-between px-6 py-3 border-b border-gray-200">
     <div class="flex items-center gap-4">
       <h2 class="text-lg font-semibold text-gray-900">
-        {{ currentDocument?.name || '未命名文档' }}
+        {{ currentDocument?.fileName || '未命名文档' }}
       </h2>
-      <span class="text-sm text-gray-500">{{ currentDocument?.type.toUpperCase() }}</span>
+      <span class="text-sm text-gray-500">{{ currentDocument?.fileType.toUpperCase() }}</span>
     </div>
 
     <div class="flex items-center gap-4">

@@ -27,7 +27,7 @@ export function useAIChat() {
         modelId: aiStore.selectedModel?.id ?? '',
         mode: aiStore.currentMode,
         context: documentStore.currentDocument
-          ? `当前文档: ${documentStore.currentDocument.name}`
+          ? `当前文档: ${documentStore.currentDocument.fileName}`
           : undefined
       })
 

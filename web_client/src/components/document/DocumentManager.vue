@@ -110,7 +110,7 @@
                         ? 'bg-green-50 text-green-700'
                         : 'bg-blue-50 text-blue-700'
                     ]">
-                      <component :is="doc.permission === 'WRITE' ? 'EditIcon' : 'EyeIcon'" :size="12" />
+                      <component :is="doc.permission === 'WRITE' ? EditIcon : EyeIcon" :size="12" />
                       {{ doc.permission === 'WRITE' ? '可编辑' : '只读' }}
                     </span>
                   </div>

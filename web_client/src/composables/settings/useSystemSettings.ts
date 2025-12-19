@@ -8,6 +8,37 @@ export function useSystemSettings() {
   const router = useRouter()
 
   const showSettings = ref(false)
+  const showEditDialog = ref(false)
+  const editForm = reactive({
+    username: '',
+    email: '',
+    avatar: ''
+  })
+
+  // 自动同步当前用户信息到编辑表单
+  watch(showEditDialog, (show) => {
+    if (show && userStore.currentUser) {
+      editForm.username = userStore.currentUser.username
+      editForm.email = userStore.currentUser.email
+      editForm.avatar = userStore.currentUser.avatar
+    }
+  })
+
+  async function handleUpdateUser() {
+    try {
+      if (!userStore.currentUser) return
+      const resp = await updateUser(editForm)
+      if (resp.code === 200) {
+        userStore.setUser(resp.data)
+        showEditDialog.value = false
+      } else {
+        alert(resp.message || '更新用户信息失败')
+      }
+    } catch (error) {
+      console.error('更新用户信息失败:', error)
+      alert('更新用户信息失败')
+    }
+  }
 
   async function handleLogout() {
     try {
