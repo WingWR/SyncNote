@@ -9,7 +9,7 @@ export function useSidebar() {
     router.push('/home')
   }
 
-  function handlePanelClick(panel: 'document' | 'workspace' | 'ai') {
+  function handlePanelClick(panel: 'document' | 'workspace' | 'ai' | 'settings') {
     if (sidebarStore.activePanel === panel) {
       sidebarStore.closePanel()
     } else {
@@ -21,7 +21,8 @@ export function useSidebar() {
     const titles: Record<string, string> = {
       document: '文档管理',
       workspace: '工作区',
-      ai: 'AI助手'
+      ai: 'AI助手',
+      settings: '系统设置'
     }
     return titles[panel || ''] || ''
   }

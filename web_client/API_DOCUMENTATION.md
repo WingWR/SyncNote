@@ -193,19 +193,45 @@
 
 ## 5. AI 相关接口
 
-### 5.1 AI 聊天
-- **URL**: `POST /api/ai/chat`
-- **请求头**: 需要 Bearer Token
+### 5.1 AI 聊天（流式输出）
+- **URL**: `POST /api/ai/chat/stream`
+- **请求头**: 需要 Bearer Token, `Accept: text/event-stream`
 - **请求体**:
 ```json
 {
   "message": "string",
   "documentId": 1,        // 可选，当前文档ID
   "modelId": "string",   // 如: "gpt-4", "gpt-3.5", "claude-3"
-  "mode": "chat" | "agent",
+  "mode": "chat" | "polish" | "continue",
   "context": "string"    // 可选，上下文信息
 }
 ```
+- **响应**: Server-Sent Events (SSE) 流式响应
+  - 每个事件格式: `data: {"type": "chunk|done|error", "content": "string", "done": boolean}\n\n`
+  - `chunk`: 内容块，包含部分响应文本
+  - `done`: 流式输出完成
+  - `error`: 发生错误
+
+**示例响应**:
+```
+data: {"type": "chunk", "content": "你好", "done": false}
+
+data: {"type": "chunk", "content": "，我可以帮您", "done": false}
+
+data: {"type": "chunk", "content": "解答问题。", "done": false}
+
+data: {"type": "done", "content": "", "done": true}
+```
+
+**模式说明**:
+- `chat`: 普通聊天问答
+- `polish`: 文本润色优化
+- `continue`: 续写文本内容
+
+### 5.2 AI 聊天（普通请求）
+- **URL**: `POST /api/ai/chat`
+- **请求头**: 需要 Bearer Token
+- **请求体**: 同流式接口
 - **响应**:
 ```json
 {

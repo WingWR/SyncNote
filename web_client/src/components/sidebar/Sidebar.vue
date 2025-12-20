@@ -37,10 +37,11 @@
     </aside>
 
     <!-- 面板抽屉 -->
-    <SidebarPanel :title="getPanelTitle(sidebarStore.activePanel)">
+    <SidebarPanel :title="getPanelTitle(sidebarStore.activePanel)" :z-index="getPanelZIndex(sidebarStore.activePanel)">
       <DocumentManager v-if="sidebarStore.activePanel === 'document'" />
       <WorkspacePanel v-if="sidebarStore.activePanel === 'workspace'" />
       <AIChatPanel v-if="sidebarStore.activePanel === 'ai'" />
+      <SystemSettingsContent v-if="sidebarStore.activePanel === 'settings'" />
     </SidebarPanel>
 
     <!-- 主内容区 -->
@@ -60,11 +61,26 @@ import DocumentManager from '../document/DocumentManager.vue'
 import WorkspacePanel from '../workplace/WorkspacePanel.vue'
 import AIChatPanel from '../ai/AIChatPanel.vue'
 import SystemSettingsPanel from '../SystemSettings/SystemSettingsPanel.vue'
+import SystemSettingsContent from '../SystemSettings/SystemSettingsContent.vue'
 import SidebarButton from './SidebarButton.vue'
 import SidebarPanel from './SidebarPanel.vue'
 import { useSidebar } from '../../composables/sidebar/useSidebar'
 
 const { sidebarStore, goHome, handlePanelClick, getPanelTitle } = useSidebar()
+
+function getPanelZIndex(panel: string | null): number {
+  // 为不同的面板设置不同的z-index，确保不会有重叠问题
+  switch (panel) {
+    case 'document':
+      return 20
+    case 'workspace':
+      return 20
+    case 'ai':
+      return 20
+    default:
+      return 10
+  }
+}
 </script>
 
 <style scoped>
