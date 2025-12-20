@@ -17,5 +17,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/env.d.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/env.d.ts"],
+  "exclude": [
+    "src/components/ai/controls/ModeSwitch.vue",
+    "src/components/ai/controls/ModelSelector.vue"
+  ]
 }

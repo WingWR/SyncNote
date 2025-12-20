@@ -2,7 +2,10 @@
   <Transition name="slide">
     <div
       v-if="sidebarStore.activePanel"
-      class="w-80 bg-white/95 backdrop-blur-sm border-r border-gray-100 flex flex-col shadow-2xl z-10 absolute left-16 top-0 bottom-0 rounded-r-2xl"
+      :class="[
+        'w-80 bg-white/95 backdrop-blur-sm border-r border-gray-100 flex flex-col shadow-2xl absolute left-16 top-0 bottom-0 rounded-r-2xl',
+        `z-${zIndex}`
+      ]"
     >
       <!-- 面板头部 -->
       <div class="p-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-gradient-to-r from-gray-50 to-white rounded-tr-2xl">
@@ -27,9 +30,16 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { X } from 'lucide-vue-next'
 import { useSidebarStore } from '../../stores/sidebar'
 
 const sidebarStore = useSidebarStore()
-const {} = defineProps<{ title: string }>()
+
+const props = defineProps<{
+  title: string
+  zIndex?: number
+}>()
+
+const zIndex = computed(() => props.zIndex || 10)
 </script>

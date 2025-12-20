@@ -1,26 +1,24 @@
 import { ref } from 'vue'
-import type { AIMessage, AIModel, AIMode } from './types'
+import type { AIState, AIModel } from './types'
+
+const defaultModel: AIModel = {
+  id: 'gpt-4',
+  name: 'GPT-4',
+  provider: 'OpenAI'
+}
 
 export function useAIState() {
-  const messages = ref<AIMessage[]>([])
-  const availableModels = ref<AIModel[]>([])
-  const selectedModel = ref<AIModel | null>(null)
-  const currentMode = ref<AIMode>('chat')
-  const isLoading = ref(false)
-  const isModelLoading = ref(false)
-
-  function setModels(models: AIModel[]) {
-    availableModels.value = models
-    selectedModel.value = models[0] ?? null
-  }
+  const state = ref<AIState>({
+    chats: [],
+    currentChatId: null,
+    currentModel: defaultModel,
+    availableModels: [], // 初始化为空数组，后端API不可用时显示"模型未接入"
+    isLoading: false,
+    isStreaming: false,
+    mode: 'chat'
+  })
 
   return {
-    messages,
-    availableModels,
-    selectedModel,
-    currentMode,
-    isLoading,
-    isModelLoading,
-    setModels
+    state
   }
 }
