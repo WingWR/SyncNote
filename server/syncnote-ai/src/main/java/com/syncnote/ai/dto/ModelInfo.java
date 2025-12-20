@@ -14,7 +14,7 @@ public class ModelInfo {
     /**
      * 模型 ID（唯一）
      */
-    private String modelId;
+    private String id;
 
     /**
      * 模型显示名称
@@ -24,5 +24,5 @@ public class ModelInfo {
     /**
      * 提供方 ID（如 openai/mock）
      */
-    private String providerId;
+    private String provider;
 }
