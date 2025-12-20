@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Data
 @Component
 public class MinioConfig {
-    @Value("${storage.minio.endpoint:http://localhost:9000}")
+    @Value("${storage.minio.endpoint:http://139.196.151.22:9000}")
     private String endpoint; //端点URL地址
 
     @Value("${storage.minio.accessKey:admin}")
