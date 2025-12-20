@@ -1,7 +1,16 @@
 import axios, { type AxiosResponse } from "axios";
 
+const getBaseURL = () => {
+  // 开发环境使用代理
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
+  // 生产环境或通过IP访问时使用实际后端地址
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+};
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: getBaseURL(),
   timeout: 30000,
   headers: {
     "Content-Type": "application/json",
