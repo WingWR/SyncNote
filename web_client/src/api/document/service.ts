@@ -21,6 +21,16 @@ export function getDocument(
   return api.get<ApiResponse<DocumentDetailResponse>>(`/documents/${id}`);
 }
 
+// 获取 Yjs 二进制状态
+export const getDocumentState = (id: string) => {
+  return api.get<string>(`/api/document/${id}/state`);
+};
+
+// 更新 Yjs 二进制状态
+export const updateDocumentState = (id: string, base64State: string) => {
+  return api.post(`/api/document/${id}/state`, base64State);
+};
+
 export function createDocument(
   data: CreateDocumentRequest
 ): Promise<ApiResponse<Document>> {
