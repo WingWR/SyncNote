@@ -4,15 +4,19 @@
     <ChatMessageList :messages="currentChat?.messages || []" />
 
     <!-- 输入控件 -->
-    <MessageInput
-      :is-loading="isLoading"
-      :current-mode="currentMode"
-      :current-model="currentModel?.id || ''"
-      :available-models="availableModels"
-      @send-message="handleSendMessage"
-      @mode-change="handleModeChange"
-      @model-change="handleModelChange"
-    />
+    <div class="flex-shrink-0 min-h-[120px]">
+      <MessageInput
+        v-show="true"
+        key="message-input"
+        :is-loading="isLoading"
+        :current-mode="currentMode"
+        :current-model="currentModel?.id || ''"
+        :available-models="availableModels"
+        @send-message="handleSendMessage"
+        @mode-change="handleModeChange"
+        @model-change="handleModelChange"
+      />
+    </div>
   </div>
 </template>
 
