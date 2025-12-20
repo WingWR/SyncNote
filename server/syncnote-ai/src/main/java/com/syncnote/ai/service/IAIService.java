@@ -10,11 +10,14 @@ public interface IAIService {
 
     /**
      * Process a chat request
+     * @param request chat payload
+     * @param token   user auth token (Bearer stripped)
      */
-    ChatResponse processChat(ChatRequest request);
+    ChatResponse processChat(ChatRequest request, String token);
 
     /**
      * Get list of available models
+     * @param token user auth token (Bearer stripped)
      */
-    List<ModelInfo> getAvailableModels();
+    List<ModelInfo> getAvailableModels(String token);
 }

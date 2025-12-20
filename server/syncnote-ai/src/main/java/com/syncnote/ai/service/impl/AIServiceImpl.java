@@ -23,9 +23,10 @@ public class AIServiceImpl implements IAIService {
     private final ProviderRegistry providerRegistry;
 
     @Override
-    public ChatResponse processChat(ChatRequest request) {
-        logger.debug("Processing chat request for model: {}", request.getModelId());
-
+    public ChatResponse processChat(ChatRequest request, String token) {
+        logger.debug("Processing chat request for model: {}, tokenPresent: {}", request.getModelId(),
+                token != null && !token.isBlank());
+    
         IAIProvider provider = providerRegistry.getProvider(request.getModelId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid model ID: " + request.getModelId()));
 
@@ -43,8 +44,8 @@ public class AIServiceImpl implements IAIService {
     }
 
     @Override
-    public List<ModelInfo> getAvailableModels() {
-        logger.debug("Getting available models");
+    public List<ModelInfo> getAvailableModels(String token) {
+        logger.debug("Getting available models, tokenPresent: {}", token != null && !token.isBlank());
 
         Map<String, IAIProvider> providers = providerRegistry.getAllProviders();
 

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.RequestHeader;
 import java.util.List;
 
 @RestController
@@ -25,14 +25,20 @@ public class AIController {
     private final AIServiceImpl aiService;
 
     @PostMapping("/chat")
-    public ApiResponse<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
-        ChatResponse response = aiService.processChat(request);
+    public ApiResponse<ChatResponse> chat(@RequestHeader("Authorization") String authHeader,
+                                          @Valid @RequestBody ChatRequest request) {
+        String token = extractToken(authHeader);
+        ChatResponse response = aiService.processChat(request, token);
         return ApiResponse.succeed(response, "聊天成功");
     }
 
     @GetMapping("/models")
-    public ApiResponse<List<ModelInfo>> models() {
-        List<ModelInfo> models = aiService.getAvailableModels();
+    public ApiResponse<List<ModelInfo>> models(@RequestHeader("Authorization") String authHeader) {
+        String token = extractToken(authHeader);
+        List<ModelInfo> models = aiService.getAvailableModels(token);
         return ApiResponse.succeed(models, "获取模型列表成功");
+    }
+    private String extractToken(String authHeader) {
+        return authHeader == null ? "" : authHeader.replace("Bearer", "").trim();
     }
 }
