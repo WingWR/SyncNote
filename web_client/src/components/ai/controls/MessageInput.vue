@@ -1,5 +1,5 @@
 <template>
-  <div class="border-t border-gray-200 bg-white">
+  <div class="border-t border-gray-200 bg-white min-h-[120px]">
     <!-- 输入框 -->
     <div class="p-4">
       <div class="relative">
@@ -73,18 +73,18 @@
         <div class="relative">
           <button
             @click="showModelDropdown = !showModelDropdown"
-            :disabled="availableModels.length === 0"
+            :disabled="!Array.isArray(availableModels) || availableModels.length === 0"
             class="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             @mouseenter="showModelTooltip = true"
             @mouseleave="showModelTooltip = false"
           >
             <span>{{ getCurrentModelLabel() }}</span>
-            <ChevronDown v-if="availableModels.length > 0" class="w-3 h-3" :class="{ 'rotate-180': showModelDropdown }" />
+            <ChevronDown v-if="Array.isArray(availableModels) && availableModels.length > 0" class="w-3 h-3" :class="{ 'rotate-180': showModelDropdown }" />
           </button>
 
           <!-- 模型下拉菜单 -->
           <div
-            v-if="showModelDropdown && availableModels.length > 0"
+            v-if="showModelDropdown && Array.isArray(availableModels) && availableModels.length > 0"
             class="absolute bottom-full left-0 mb-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50"
           >
             <div class="py-1">
@@ -123,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, computed } from 'vue'
+import { ref, nextTick, computed, onMounted } from 'vue'
 import { Send, ChevronDown } from 'lucide-vue-next'
 import type { AIModel } from '../../../stores/ai/types'
 
@@ -158,9 +158,18 @@ const modes = [
   { id: 'continue' as const, name: '续写' }
 ]
 
+// 调试信息
+onMounted(() => {
+  console.log('MessageInput mounted', {
+    currentMode: props.currentMode,
+    currentModel: props.currentModel,
+    availableModelsCount: props.availableModels.length
+  })
+})
+
 // 计算属性
 const currentModelObj = computed(() =>
-  props.availableModels.find(model => model.id === props.currentModel)
+  Array.isArray(props.availableModels) ? props.availableModels.find(model => model.id === props.currentModel) : null
 )
 
 function sendMessage() {
@@ -216,7 +225,7 @@ function getCurrentModeLabel() {
 }
 
 function getCurrentModelLabel() {
-  if (props.availableModels.length === 0) {
+  if (!Array.isArray(props.availableModels) || props.availableModels.length === 0) {
     return '模型未接入'
   }
   return currentModelObj.value?.name || '选择模型'

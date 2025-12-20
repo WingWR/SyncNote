@@ -66,53 +66,61 @@
 
             <!-- 文档卡片内容 -->
             <div class="p-4">
-              <div class="flex items-start gap-3">
+              <div class="flex gap-3">
                 <!-- 文件图标 -->
                 <div :class="[
-                  'w-10 h-10 rounded-lg flex items-center justify-center shrink-0',
+                  'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
                   getFileTypeColor(doc.fileType)
                 ]">
-                  <component :is="getFileIcon(doc.fileType)" :size="20" class="text-white" />
+                  <component :is="getFileIcon(doc.fileType)" :size="16" class="text-white" />
                 </div>
 
                 <!-- 文档信息 -->
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-start justify-between mb-2">
-                    <div class="flex-1 min-w-0">
-                      <h5 class="text-sm font-semibold text-gray-900 truncate mb-1" :title="doc.fileName">
+                  <!-- 第一行：文件名和文件类型 -->
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                      <h5 class="text-sm font-semibold text-gray-900 truncate leading-tight" :title="doc.fileName">
                         {{ doc.fileName }}
                       </h5>
-                      <span class="inline-block text-xs text-gray-500 uppercase bg-gray-100 px-2 py-0.5 rounded">
+                      <span class="inline-block text-xs text-gray-500 uppercase bg-gray-100 px-2 py-0.5 rounded shrink-0">
                         {{ doc.fileType }}
                       </span>
                     </div>
 
                     <!-- 操作按钮 -->
-                    <button @click.stop="toggleDocumentMenu(doc.id)"
+                    <button @click.stop="toggleDocumentMenu(doc.id, $event)"
                       class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors opacity-0 group-hover:opacity-100">
                       <MoreVerticalIcon :size="18" />
                     </button>
                   </div>
 
-                  <!-- 文档元信息 -->
-                  <div class="flex items-center gap-4 text-xs text-gray-500">
-                    <span class="flex items-center gap-1">
-                      <FileTextIcon :size="12" />
-                      {{ formatFileSize(doc.fileSize) }}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <ClockIcon :size="12" />
-                      {{ formatDate(doc.updatedAt) }}
-                    </span>
-                    <span v-if="doc.permission" :class="[
-                      'flex items-center gap-1 px-2 py-0.5 rounded-full font-medium',
-                      doc.permission === 'WRITE'
-                        ? 'bg-green-50 text-green-700'
-                        : 'bg-blue-50 text-blue-700'
-                    ]">
-                      <component :is="doc.permission === 'WRITE' ? EditIcon : EyeIcon" :size="12" />
-                      {{ doc.permission === 'WRITE' ? '可编辑' : '只读' }}
-                    </span>
+                  <!-- 第二行：文件大小、创建时间和权限状态 -->
+                  <div class="flex items-start justify-between">
+                    <!-- 左侧：文件大小和创建时间（与图标左边界对齐） -->
+                    <div class="flex flex-col gap-1 text-xs text-gray-500 -ml-11 pl-11">
+                      <span class="flex items-center gap-1">
+                        <FileTextIcon :size="12" />
+                        {{ formatFileSize(doc.fileSize) }}
+                      </span>
+                      <span class="flex items-center gap-1">
+                        <ClockIcon :size="12" />
+                        {{ formatDate(doc.updatedAt) }}
+                      </span>
+                    </div>
+
+                    <!-- 右侧：权限状态 -->
+                    <div v-if="doc.permission" class="flex flex-col items-center gap-0.5 self-start">
+                      <component :is="doc.permission === 'WRITE' ? EditIcon : EyeIcon" :size="14" :class="[
+                        doc.permission === 'WRITE' ? 'text-green-600' : 'text-blue-600'
+                      ]" />
+                      <span :class="[
+                        'text-xs font-medium',
+                        doc.permission === 'WRITE' ? 'text-green-700' : 'text-blue-700'
+                      ]">
+                        {{ doc.permission === 'WRITE' ? '可编辑' : '只读' }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -120,7 +128,8 @@
 
             <!-- 操作菜单 -->
             <div v-if="activeDocumentMenu === doc.id"
-              class="absolute right-2 top-14 w-40 bg-white rounded-lg shadow-xl border border-gray-200 z-20 overflow-hidden">
+              class="fixed w-40 bg-white rounded-lg shadow-xl border border-gray-200 z-[1000] overflow-hidden"
+              :style="{ left: menuPosition.left + 'px', top: menuPosition.top + 'px' }">
               <div class="py-1">
                 <button v-if="!showTrash" @click.stop="openDocument(doc.id)"
                   class="flex items-center gap-2 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
@@ -199,10 +208,14 @@ const {
   createDocumentHandler
 } = useDocumentManager()
 
+// 确保fileInputRef被使用（模板中作为ref使用）
+console.log('fileInputRef initialized:', !!fileInputRef.value)
+
 // 列表状态
 const loading = ref(false)
 const showTrash = ref(false)
 const activeDocumentMenu = ref<string | null>(null)
+const menuPosition = ref({ left: 0, top: 0 })
 
 // 计算属性
 const displayDocuments = computed(() => {
@@ -235,8 +248,20 @@ const openDocument = (id: string) => {
   router.push(`/home/document/${id}`)
 }
 
-const toggleDocumentMenu = (id: string) => {
-  activeDocumentMenu.value = activeDocumentMenu.value === id ? null : id
+const toggleDocumentMenu = (id: string, event?: Event) => {
+  if (activeDocumentMenu.value === id) {
+    activeDocumentMenu.value = null
+  } else {
+    activeDocumentMenu.value = id
+    // 计算菜单位置
+    if (event && event.target) {
+      const rect = (event.target as HTMLElement).getBoundingClientRect()
+      menuPosition.value = {
+        left: rect.right + 8,
+        top: rect.top
+      }
+    }
+  }
 }
 
 const handleDelete = async (id: string) => {
