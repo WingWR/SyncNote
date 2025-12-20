@@ -248,18 +248,13 @@ public class DocumentServiceImpl implements IDocumentService {
      * 获取文件ContentType
      */
     private String getContentType(String fileType) {
-        switch (fileType.toLowerCase()) {
-            case "txt":
-                return "text/plain";
-            case "md":
-                return "text/markdown";
-            case "docx":
-                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-            case "pptx":
-                return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-            default:
-                return "application/octet-stream";
-        }
+        return switch (fileType.toLowerCase()) {
+            case "txt" -> "text/plain";
+            case "md" -> "text/markdown";
+            case "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "pptx" -> "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            default -> "application/octet-stream";
+        };
     }
 
     @Override
