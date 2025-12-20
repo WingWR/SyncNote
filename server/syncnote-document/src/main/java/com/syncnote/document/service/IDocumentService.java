@@ -46,7 +46,7 @@ public interface IDocumentService {
      * @param token 用户认证令牌
      * @return 创建的文档信息
      */
-    DocumentDTO uploadDocument(MultipartFile file, Long parentId, String token);
+    DocumentDTO uploadDocument(MultipartFile file, Long parentId, String base64State, String token);
 
     /**
      * 删除文档（软删除）
@@ -74,4 +74,20 @@ public interface IDocumentService {
      * @param token 用户认证令牌
      */
     void permanentlyDeleteDocument(Long id, String token);
+
+    /**
+     * 获取Y.js的二进制信息
+     *
+     * @param docId 文档的Id
+     * @return Y.js的二进制信息
+     */
+    String getDocumentBinaryState(Long docId);
+
+    /**
+     * 保存Y.js的二进制信息
+     *
+     * @param docId 文档的Id
+     * @param base64State 修改后的Y.js的二进制信息
+     */
+    void saveDocumentBinaryState(Long docId, String base64State);
 }
