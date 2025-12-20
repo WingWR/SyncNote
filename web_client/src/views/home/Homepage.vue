@@ -2,8 +2,6 @@
   <div class="h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 overflow-auto">
     <WelcomeSection>
       <FeatureCards />
-
-      <!-- 👇 slot 必须放这里 -->
     </WelcomeSection>
   </div>
 </template>
