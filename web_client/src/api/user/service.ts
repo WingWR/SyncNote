@@ -17,7 +17,7 @@ export function register(data: RegisterRequest) {
 }
 
 export function getCurrentUser() {
-  return api.get<ApiResponse<User>>("/user/me");
+  return api.post<ApiResponse<User>>("/user/me");
 }
 
 export function updateUser(data: UpdateUserRequest) {
