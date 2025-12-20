@@ -65,9 +65,9 @@ public class DocumentController {
 
     // 保存 Yjs 二进制状态
     @PostMapping("/{id}/state")
-    public ApiResponse<Void> saveDocumentState(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ApiResponse<Void> saveDocumentState(@PathVariable Long id, @RequestBody String base64State) {
         // 接收 Base64 字符串
-        documentService.saveDocumentBinaryState(id, body.get("state"));
+        documentService.saveDocumentBinaryState(id, base64State);
         return ApiResponse.succeed("保存Y.js的二进制状态成功");
     }
 
