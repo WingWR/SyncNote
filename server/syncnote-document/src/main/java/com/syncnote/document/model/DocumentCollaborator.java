@@ -31,6 +31,14 @@ public class DocumentCollaborator {
         public String toValue() {
             return this.name();
         }
+
+        public boolean canRead() {
+            return this == READ || this == WRITE;
+        }
+
+        public boolean canWrite() {
+            return this == WRITE;
+        }
     }
     private Permission permission;
 
