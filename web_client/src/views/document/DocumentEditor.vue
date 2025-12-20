@@ -49,8 +49,9 @@
     <!-- 编辑器区域 -->
     <div class="flex-1 overflow-auto p-6">
       <!-- TipTap编辑器（用于.md格式） -->
-      <div v-if="documentStore.currentDocument?.fileType === 'md'" ref="editorContainer"
-        class="prose max-w-none focus:outline-none"></div>
+      <div v-if="documentStore.currentDocument?.fileType === 'md'" class="prose max-w-none focus:outline-none">
+        <editor-content :editor="editor" />
+      </div>
 
       <!-- 文本编辑器（用于.txt格式） -->
       <textarea v-else-if="documentStore.currentDocument?.fileType === 'txt'" v-model="textContent"
@@ -153,23 +154,20 @@
 import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { Users, Share2 } from 'lucide-vue-next'
-import { useEditor } from '@tiptap/vue-3'
+import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import Collaboration from '@tiptap/extension-collaboration'
-import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
-import * as Y from 'yjs'
-import { WebsocketProvider } from 'y-websocket'
+import { debounce } from 'lodash-es'
 import { useDocumentStore } from '../../stores/document/index'
 import { getDocument, getCollaborators, addCollaborator } from '../../api/document'
-import { useUserStore } from '../../stores/user'
 import CollaboratorsManagementDialog from './components/CollaboratorsManagementDialog.vue'
+import { marked } from 'marked'
 
 const route = useRoute()
 const documentStore = useDocumentStore()
-const userStore = useUserStore()
 
 const editorContainer = ref<HTMLElement | null>(null)
 const textContent = ref('')
+const isSaving = ref(false) // 用于在界面上显示“保存中...”状态
 const showCollaboratorsDialog = ref(false)
 const showAddCollaboratorDialog = ref(false)
 const showShareDialog = ref(false)
@@ -182,13 +180,51 @@ const shareLink = computed(() => {
   return `${baseUrl}/home/document/join/${documentStore.currentDocument.id}`
 })
 
-let ydoc: Y.Doc | null = null
-let provider: WebsocketProvider | null = null
-let editor: ReturnType<typeof useEditor> | null = null
+/**
+ * 核心保存函数
+ * 逻辑：将当前内容同步到后端或 MinIO
+ */
+async function saveDocumentContent() {
+  if (!documentStore.currentDocument) return
 
+  isSaving.value = true
+  try {
+    const content = textContent.value
+    console.log('正在自动保存内容至后端...', content)
+
+    // TODO: 调用修改文档 API，例如：
+    // await uploadToMinIO(documentStore.currentDocument.id, content)
+
+    console.log('保存成功')
+  } catch (error) {
+    console.error('自动保存失败:', error)
+  } finally {
+    isSaving.value = false
+  }
+}
+
+/**
+ * 创建防抖版本的保存函数
+ * 特点：只有在停止输入 1000ms (1秒) 后才会执行
+ */
+const debouncedSave = debounce(() => {
+  saveDocumentContent()
+}, 1000)
+
+const editor = useEditor({
+  extensions: [StarterKit],
+  content: '', // 给用户一个加载提示，避免纯白屏
+  // 当编辑器内容发生变化时触发
+  onUpdate: () => {
+    // 如果是单机模式，我们把 HTML 转回 Markdown 存储
+    // 如果是协同模式，通常由后端通过 Y-js 直接持久化，前端可能不需要手动保存
+    debouncedSave()
+  }
+})
 const visibleCollaborators = computed(() => {
   return documentStore.collaborators.slice(0, maxVisibleCollaborators)
 })
+
 
 // 加载文档
 async function loadDocument() {
@@ -205,11 +241,11 @@ async function loadDocument() {
         documentStore.setCollaborators(collaboratorsResponse.data)
       }
 
-      // 初始化Y.js协同编辑
+      // 初始化编辑器（暂时关闭协同编辑，直接从 MinIO 加载内容） TODO: 恢复协同编辑
       if (docResponse.data.fileType === 'md') {
-        initCollaborativeEditor(docId)
+        initCollaborativeEditor(docResponse.data.contentUrl)
       } else if (docResponse.data.fileType === 'txt') {
-        initTextEditor(docId)
+        initTextEditor(docResponse.data.contentUrl)
       }
     } else {
       alert(docResponse.message || '加载文档失败')
@@ -220,66 +256,60 @@ async function loadDocument() {
   }
 }
 
-// 初始化Markdown协同编辑器
-async function initCollaborativeEditor(docId: string) {
+// 初始化Markdown编辑器（协同编辑暂时注释，直接加载 MinIO 内容） TODO: 使用 Y.js 进行协同
+async function initCollaborativeEditor(contentUrl?: string) {
   await nextTick()
-  if (!editorContainer.value) return
+  if (!editor.value) {
+    console.warn('Tiptap 实例尚未就绪，稍后重试...')
+    return
+  }
 
-  ydoc = new Y.Doc()
-  const ytext = ydoc.getText('content')
+  let initialContent = ''
+  if (contentUrl) {
+    try {
+      const response = await fetch(contentUrl)
+      if (response.ok) {
+        initialContent = await response.text()
+      }
+    } catch (error) {
+      console.error('加载 MinIO 初始内容失败:', error)
+    }
+  }
+  try {
+    // 3. 异步兼容处理：不管 marked 返回是 string 还是 Promise<string>
+    // 使用 await 都能确保拿到的 html 是最终的字符串
+    const html = await marked(initialContent)
 
-  // WebSocket连接（需要根据实际后端地址配置）
-  const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:8080/ws/document/${docId}`
-  provider = new WebsocketProvider(wsUrl, `document-${docId}`, ydoc)
+    // 4. 内容注入
+    editor.value.commands.setContent(html)
 
-  editor = useEditor({
-    element: editorContainer.value,
-    extensions: [
-      StarterKit,
-      Collaboration.configure({
-        document: ydoc
-      }),
-      CollaborationCursor.configure({
-        provider,
-        user: {
-          name: userStore.currentUser?.username || 'Anonymous',
-          color: '#3b82f6'
-        }
-      })
-    ],
-    content: ytext.toString()
-  })
+  } catch (parseError) {
+    console.error('Markdown 解析失败:', parseError)
+  }
 }
 
-// 初始化文本编辑器
-function initTextEditor(docId: string) {
-  ydoc = new Y.Doc()
-  const ytext = ydoc.getText('content')
-
-  const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:8080/ws/document/${docId}`
-  provider = new WebsocketProvider(wsUrl, `document-${docId}`, ydoc)
-
-  // 监听Y.js文本变化
-  ytext.observe(() => {
-    textContent.value = ytext.toString()
-  })
-
-  // 初始化内容
-  textContent.value = ytext.toString()
+// 初始化文本编辑器（协同编辑暂时注释，直接加载 MinIO 内容） TODO: 使用 Y.js 进行协同
+function initTextEditor(contentUrl?: string) {
+  textContent.value = ''
+  if (contentUrl) {
+    try {
+      fetch(contentUrl)
+        .then((resp) => (resp.ok ? resp.text() : Promise.resolve('')))
+        .then((text) => {
+          textContent.value = text || ''
+        })
+        .catch((error) => {
+          console.error('加载 MinIO 初始内容失败:', error)
+        })
+    } catch (error) {
+      console.error('加载 MinIO 初始内容失败:', error)
+    }
+  }
 }
 
 // 处理文本输入
 function handleTextInput() {
-  if (!ydoc || !textContent.value) return
-
-  const ytext = ydoc.getText('content')
-  const currentContent = ytext.toString()
-
-  if (textContent.value !== currentContent) {
-    // 简单的同步逻辑（实际应该使用Y.js的更新机制）
-    ytext.delete(0, currentContent.length)
-    ytext.insert(0, textContent.value)
-  }
+  // 本地编辑，无协同同步（后续接入 Y.js 同步） TODO: 同步到后端
 }
 
 // 添加协作者
@@ -356,12 +386,6 @@ onMounted(() => {
 onUnmounted(() => {
   if (editor?.value) {
     editor.value.destroy()
-  }
-  if (provider) {
-    provider.destroy()
-  }
-  if (ydoc) {
-    ydoc.destroy()
   }
 })
 </script>
