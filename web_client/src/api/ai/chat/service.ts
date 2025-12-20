@@ -1,8 +1,8 @@
 import api from '../../index'
-import type { AIChatRequest, AIChatResponse, AIStreamCallbacks } from './types'
+import type { AIChatRequest, AIChatResponse, AIStreamCallbacks, ApiResponse } from './types'
 
 export function chat(data: AIChatRequest) {
-  return api.post<AIChatResponse>('/ai/chat', data)
+  return api.post<ApiResponse<AIChatResponse>>('/ai/chat', data)
 }
 
 export function chatStream(data: AIChatRequest, callbacks: AIStreamCallbacks) {

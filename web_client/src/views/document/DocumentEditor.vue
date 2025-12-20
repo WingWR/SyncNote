@@ -158,12 +158,14 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { debounce } from 'lodash-es'
 import { useDocumentStore } from '../../stores/document/index'
+import { useSidebarStore } from '../../stores/sidebar'
 import { getDocument, getCollaborators, addCollaborator } from '../../api/document'
 import CollaboratorsManagementDialog from './components/CollaboratorsManagementDialog.vue'
 import { marked } from 'marked'
 
 const route = useRoute()
 const documentStore = useDocumentStore()
+const sidebarStore = useSidebarStore()
 
 const textContent = ref('')
 const isSaving = ref(false) // 用于在界面上显示“保存中...”状态
@@ -379,6 +381,8 @@ function copyShareLink() {
 watch(() => route.params.id, loadDocument, { immediate: true })
 
 onMounted(() => {
+  // 进入编辑器时关闭sidebar面板，避免操作菜单被覆盖
+  sidebarStore.closePanel()
   loadDocument()
 })
 

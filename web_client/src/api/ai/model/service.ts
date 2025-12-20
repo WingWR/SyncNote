@@ -1,6 +1,6 @@
 import api from '../../index'
-import type { AIModel } from './types'
+import type { AIModel, ApiResponse } from './types'
 
 export function getModels() {
-  return api.get<AIModel[]>('/ai/models')
+  return api.get<ApiResponse<AIModel[]>>('/ai/models')
 }
