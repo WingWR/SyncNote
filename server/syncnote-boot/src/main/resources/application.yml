@@ -52,4 +52,32 @@ logging:
     com.syncnote.util.JWT: DEBUG
     org.springframework.security: DEBUG
     # 打开mapper 日志 查看 查询逻辑
-    #com.syncnote.document.mapper: DEBUG
+    # com.syncnote.document.mapper: DEBUG
+# AI Module Configuration
+syncnote:
+  ai:
+    providers:
+      # OpenAI Provider (disabled by default, can be enabled with env vars)
+      # OpenAI提供者配置
+      openai:
+        # OpenAI是否启用
+        enabled: ${SYNCNOTE_AI_OPENAI_ENABLED:false}
+        # OpenAI的API密钥
+        api-key: ${SYNCNOTE_AI_OPENAI_API_KEY:}
+        # OpenAI的端点
+        endpoint: ${SYNCNOTE_AI_OPENAI_ENDPOINT:}
+        # OpenAI的模型ID
+        modelId: ${SYNCNOTE_AI_OPENAI_MODEL_ID:gpt-3.5-turbo}
+      
+      # Mock Provider (enabled by default)
+      # Mock提供者（默认启用）
+      mock:
+        # Mock提供者是否启用
+        enabled: ${SYNCNOTE_AI_MOCK_ENABLED:true}
+        # Mock提供者模型ID
+        modelId: ${SYNCNOTE_AI_MOCK_MODEL_ID:mock-model}
+      deepseek:
+        enabled: ${SYNCNOTE_AI_DEEPSEEK_ENABLED:true}
+        api-key: ${SYNCNOTE_AI_DEEPSEEK_API_KEY:sk-90ac868504e94e5aaec7016bb4a1b4c6}
+        endpoint: ${SYNCNOTE_AI_DEEPSEEK_ENDPOINT:https://api.deepseek.com/v1}
+        modelId: ${SYNCNOTE_AI_DEEPSEEK_MODEL_ID:deepseek-chat}
