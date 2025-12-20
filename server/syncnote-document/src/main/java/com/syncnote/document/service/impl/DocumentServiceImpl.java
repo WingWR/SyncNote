@@ -199,15 +199,16 @@ public class DocumentServiceImpl implements IDocumentService {
             // 插入文档记录
             documentMapper.insert(document);
 
-            // 创建Chunk内容
-            this.saveDocumentBinaryState(document.getId(), "");
-
             // 在协作表中为创建者添加WRITE权限
             DocumentCollaborator collaborator = new DocumentCollaborator();
             collaborator.setDocumentId(document.getId());
             collaborator.setUserId(userId);
             collaborator.setPermission(DocumentCollaborator.Permission.WRITE);
             documentCollaboratorMapper.insert(collaborator);
+
+            // 创建Chunk内容
+            // 必须先有写权限才能写Chunk
+            this.saveDocumentBinaryState(document.getId(), "");
 
             // 转换为DTO
             DocumentDTO responseDTO = new DocumentDTO();
@@ -304,15 +305,16 @@ public class DocumentServiceImpl implements IDocumentService {
         // 插入文档记录
         documentMapper.insert(document);
 
-        // 添加Chunk内容
-        this.saveDocumentBinaryState(document.getId(), base64State);
-
         // 在协作表中为创建者添加WRITE权限
         DocumentCollaborator collaborator = new DocumentCollaborator();
         collaborator.setDocumentId(document.getId());
         collaborator.setUserId(userId);
         collaborator.setPermission(DocumentCollaborator.Permission.WRITE);
         documentCollaboratorMapper.insert(collaborator);
+
+        // 添加Chunk内容
+        // 必须先有写权限才能写Chunk
+        this.saveDocumentBinaryState(document.getId(), base64State);
 
         // 转换为DTO
         DocumentDTO responseDTO = new DocumentDTO();
