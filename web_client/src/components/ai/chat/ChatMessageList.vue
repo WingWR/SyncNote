@@ -1,11 +1,17 @@
 <template>
-  <div class="flex-1 overflow-y-auto space-y-2">
-    <ChatMessageItem
-      v-for="message in messages"
-      :key="message.id"
-      :message="message"
-    />
-    <ChatEmptyState v-if="messages.length === 0" />
+  <div class="flex-1 overflow-y-auto bg-white">
+    <!-- 空状态 -->
+    <ChatEmptyState v-if="!messages.length" />
+
+    <!-- 消息列表 -->
+    <div v-else class="divide-y divide-gray-50">
+      <ChatMessageItem
+        v-for="message in messages"
+        :key="message.id"
+        :message="message"
+      />
+    </div>
+
   </div>
 </template>
 
