@@ -23,6 +23,7 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const userStore = useUserStore()
   const isDev = import.meta.env.DEV
+  const token = localStorage.getItem('token')
 
   // 开发环境跳过认证
   if (isDev) {
@@ -35,8 +36,14 @@ router.beforeEach((to, _from, next) => {
   }
 
   // 生产环境认证
-  if (to.meta.requiresAuth && !userStore.isAuthenticated) {
-    next('/login')
+  // 如果有token但用户状态还未恢复，允许访问需要认证的页面
+  // main.ts中的异步恢复逻辑会处理用户状态
+  if (to.meta.requiresAuth) {
+    if (userStore.isAuthenticated || token) {
+      next()
+    } else {
+      next('/login')
+    }
   } else if (to.path === '/login' && userStore.isAuthenticated) {
     next('/home')
   } else {
