@@ -4,12 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
 import com.syncnote.document.dto.response.DocumentDTO;
+import com.syncnote.document.mapper.DocumentChunkMapper;
 import com.syncnote.document.mapper.DocumentCollaboratorMapper;
 import com.syncnote.document.mapper.DocumentMapper;
-import com.syncnote.document.model.DocStatus;
-import com.syncnote.document.model.Document;
-import com.syncnote.document.model.DocumentCollaborator;
-import com.syncnote.document.model.DocumentFileType;
+import com.syncnote.document.model.*;
 import com.syncnote.document.config.StorageConfigProvider;
 import com.syncnote.document.service.IDocumentService;
 import com.syncnote.document.service.IStorageService;
@@ -23,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,8 +36,11 @@ public class DocumentServiceImpl implements IDocumentService {
     private DocumentMapper documentMapper;
 
     @Autowired
+    private DocumentChunkMapper documentChunkMapper;
+
+    @Autowired
     private DocumentCollaboratorMapper documentCollaboratorMapper;
-    
+
     @Autowired
     private IStorageService storageService;
 
@@ -58,7 +60,7 @@ public class DocumentServiceImpl implements IDocumentService {
         List<DocumentCollaborator> collaborators = documentCollaboratorMapper.selectList(
                 new QueryWrapper<DocumentCollaborator>().eq("user_id", userId)
         );
-        
+
         // 构建文档ID -> 权限的映射
         Map<Long, DocumentCollaborator.Permission> docPermissionMap = collaborators.stream()
                 .collect(Collectors.toMap(
@@ -162,10 +164,10 @@ public class DocumentServiceImpl implements IDocumentService {
         byte[] content;
         // TODO: 如果提供了 templateId，从模板复制内容
         if (dto.getTemplateId() != null) {
-             // 预留模板处理逻辑
-             // content = templateService.getTemplateContent(dto.getTemplateId());
-             // 目前暂时使用空白内容代替
-             content = generateDefaultContent(dto.getFileType());
+            // 预留模板处理逻辑
+            // content = templateService.getTemplateContent(dto.getTemplateId());
+            // 目前暂时使用空白内容代替
+            content = generateDefaultContent(dto.getFileType());
         } else {
             content = generateDefaultContent(dto.getFileType());
         }
@@ -174,7 +176,7 @@ public class DocumentServiceImpl implements IDocumentService {
         String filePath = generateFilePath(userId, dto.getFileName());
         String bucketName = storageConfigProvider.getBucketName();
         String contentType = getContentType(dto.getFileType());
-        
+
         // 上传文件到存储系统
         String objectName;
         try (java.io.InputStream inputStream = new java.io.ByteArrayInputStream(content)) {
@@ -209,7 +211,7 @@ public class DocumentServiceImpl implements IDocumentService {
             BeanUtils.copyProperties(document, responseDTO);
             responseDTO.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
             responseDTO.setPermission(DocumentCollaborator.Permission.WRITE.toValue());
-            
+
             // 设置内容URL (虽然刚创建可能不需要立即获取，但保持一致性)
             // String presignedUrl = storageService.getPresignedUrl(bucketName, document.getFilePath(), Duration.ofHours(1));
             // responseDTO.setContentUrl(presignedUrl); // DocumentDTO没有contentUrl，DocumentDetailDTO才有
@@ -228,6 +230,7 @@ public class DocumentServiceImpl implements IDocumentService {
 
     /**
      * 生成默认文档内容
+     *
      * @param fileType 文件类型
      * @return 文件内容字节数组
      */
@@ -246,16 +249,22 @@ public class DocumentServiceImpl implements IDocumentService {
      */
     private String getContentType(String fileType) {
         switch (fileType.toLowerCase()) {
-            case "txt": return "text/plain";
-            case "md": return "text/markdown";
-            case "docx": return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-            case "pptx": return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-            default: return "application/octet-stream";
+            case "txt":
+                return "text/plain";
+            case "md":
+                return "text/markdown";
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "pptx":
+                return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            default:
+                return "application/octet-stream";
         }
     }
 
     @Override
-    public DocumentDTO uploadDocument(MultipartFile file, Long parentId, String token) {
+    @Transactional(rollbackFor = Exception.class)
+    public DocumentDTO uploadDocument(MultipartFile file, Long parentId, String base64State, String token) {
         Long userId = CurrentUserContext.getUserId();
         if (userId == null) {
             throw new IllegalArgumentException("用户未登录或 token 无效");
@@ -296,6 +305,9 @@ public class DocumentServiceImpl implements IDocumentService {
 
         // 插入文档记录
         documentMapper.insert(document);
+
+        // 添加Chunk内容
+        this.saveDocumentBinaryState(document.getId(), base64State);
 
         // 在协作表中为创建者添加WRITE权限
         DocumentCollaborator collaborator = new DocumentCollaborator();
@@ -389,7 +401,7 @@ public class DocumentServiceImpl implements IDocumentService {
                 logger.info("已从存储系统中删除文件: documentId={}, filePath={}", document.getId(), document.getFilePath());
             } catch (Exception e) {
                 // 记录日志，但不阻止数据库删除（允许数据库删除继续执行）
-                logger.error("删除存储系统中的文件失败: documentId={}, filePath={}, error={}", 
+                logger.error("删除存储系统中的文件失败: documentId={}, filePath={}, error={}",
                         document.getId(), document.getFilePath(), e.getMessage(), e);
             }
         }
@@ -408,8 +420,64 @@ public class DocumentServiceImpl implements IDocumentService {
      * 获取权限字符串
      * 文档拥有者默认为WRITE权限，协作者从协作表中获取权限
      *
-     * @param document 文档对象
-     * @param userId 当前用户ID
+     * @param docId    文档Id
+     * @return   文档的具体内容
+     */
+    @Override
+    public String getDocumentBinaryState(Long docId) {
+        if(!checkReadPermission(docId)) throw new RuntimeException("没有读文件的权限");
+
+        DocumentChunk chunk = documentChunkMapper.selectOne(
+                new QueryWrapper<DocumentChunk>()
+                        .eq("document_id", docId)
+                        .eq("chunk_index", 0)
+        );
+        if(chunk != null){
+            return chunk.getContent();
+        }
+
+        return "";
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void saveDocumentBinaryState(Long docId, String base64State){
+        if(!checkWritePermission(docId)) throw new RuntimeException("没有写文件权限");
+
+        // 查找文件的内容
+        DocumentChunk chunk = documentChunkMapper.selectOne(
+                new QueryWrapper<DocumentChunk>()
+                        .eq("document_id", docId)
+                        .eq("chunk_index", 0)
+        );
+
+        // 更新文档的内容
+        if (chunk == null) {
+            chunk = new DocumentChunk();
+            chunk.setDocumentId(docId);
+            chunk.setChunkIndex(0);
+            chunk.setContent(base64State);
+            documentChunkMapper.insert(chunk);
+        } else {
+            chunk.setContent(base64State);
+            documentChunkMapper.updateById(chunk);
+        }
+
+        // 同步修改主表的信息
+        Document doc = documentMapper.selectById(docId);
+        if(doc != null){
+            doc.setFileSize((long) base64State.length());
+            doc.setUpdatedAt(Instant.now());
+            documentMapper.updateById(doc);
+        }
+    }
+
+    /**
+     * 获取权限字符串
+     * 文档拥有者默认为WRITE权限，协作者从协作表中获取权限
+     *
+     * @param document         文档对象
+     * @param userId           当前用户ID
      * @param docPermissionMap 文档ID到权限的映射
      * @return 权限字符串 ("WRITE" 或 "READ")
      */
@@ -444,7 +512,7 @@ public class DocumentServiceImpl implements IDocumentService {
      * 生成文件存储路径
      * 格式: userId/yyyy-MM/dd/uuid-filename
      *
-     * @param userId 用户ID
+     * @param userId           用户ID
      * @param originalFilename 原始文件名
      * @return 文件路径
      */
@@ -453,5 +521,28 @@ public class DocumentServiceImpl implements IDocumentService {
         String uuid = UUID.randomUUID().toString().replace("-", "");
         String datePath = String.format("%d/%04d-%02d/%02d", userId, now.getYear(), now.getMonthValue(), now.getDayOfMonth());
         return String.format("%s/%s-%s", datePath, uuid, originalFilename);
+    }
+
+    private DocumentCollaborator.Permission getPermission(Long docId) {
+        Long userId = CurrentUserContext.getUserId();
+        if (userId == null) return null;
+
+        DocumentCollaborator collaborator = documentCollaboratorMapper.selectOne(
+                new QueryWrapper<DocumentCollaborator>()
+                        .eq("user_id", userId)
+                        .eq("document_id", docId)
+        );
+
+        return collaborator == null ? null : collaborator.getPermission();
+    }
+
+    private Boolean checkReadPermission(Long docId) {
+        DocumentCollaborator.Permission p = getPermission(docId);
+        return p != null && p.canRead();
+    }
+
+    private Boolean checkWritePermission(Long docId) {
+        DocumentCollaborator.Permission p = getPermission(docId);
+        return p != null && p.canWrite();
     }
 }

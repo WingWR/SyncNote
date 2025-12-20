@@ -11,6 +11,7 @@ import com.syncnote.document.service.IDocumentService;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/documents")
@@ -55,6 +56,20 @@ public class DocumentController {
     // TODO: 3.4 更新文档 - 待实现
     // @PutMapping("/{id}")
     // public ApiResponse<DocumentDTO> updateDocument(...)
+    // 获取 Yjs 二进制状态
+    @GetMapping("/{id}/state")
+    public ApiResponse<String> getDocumentState(@PathVariable Long id) {
+        // 返回 Base64 编码的二进制数据
+        return ApiResponse.succeed(documentService.getDocumentBinaryState(id), "获取Y.js的二进制状态成功");
+    }
+
+    // 保存 Yjs 二进制状态
+    @PostMapping("/{id}/state")
+    public ApiResponse<Void> saveDocumentState(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        // 接收 Base64 字符串
+        documentService.saveDocumentBinaryState(id, body.get("state"));
+        return ApiResponse.succeed("保存Y.js的二进制状态成功");
+    }
 
     /**
      * 3.5 删除文档（软删除）
@@ -78,15 +93,17 @@ public class DocumentController {
      * 
      * @param file 上传的文件
      * @param parentId 父目录ID（可选）
+     * @param base64State Y.js的Base64状态
      * @param authHeader 认证令牌
      */
     @PostMapping("/upload")
     public ApiResponse<DocumentDTO> uploadDocument(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "parentId", required = false) Long parentId,
+            @RequestParam("base64State") String base64State,
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer", "").trim();
-        DocumentDTO document = documentService.uploadDocument(file, parentId, token);
+        DocumentDTO document = documentService.uploadDocument(file, parentId, base64State, token);
         return ApiResponse.succeed(document, "上传文档成功");
     }
 
