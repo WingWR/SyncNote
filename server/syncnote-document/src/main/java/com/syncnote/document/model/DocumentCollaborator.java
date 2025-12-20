@@ -13,7 +13,8 @@ import lombok.Data;
 @Data
 @TableName("document_collaborator")
 public class DocumentCollaborator {
-    @TableId(type = IdType.AUTO)
+
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     private Long documentId;
