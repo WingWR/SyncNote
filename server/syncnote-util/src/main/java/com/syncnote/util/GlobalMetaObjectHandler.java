@@ -3,9 +3,11 @@ package com.syncnote.util;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.syncnote.util.context.CurrentUserContext;
 import org.apache.ibatis.reflection.MetaObject;
+import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 
+@Component
 public class GlobalMetaObjectHandler implements MetaObjectHandler {
 
     @Override
@@ -18,7 +20,7 @@ public class GlobalMetaObjectHandler implements MetaObjectHandler {
         strictInsertFill(metaObject, "createdBy", this::getCurrentUserId, Long.class);
 
         // 填充更新者用户ID（从 JWT 中获取）
-        strictUpdateFill(metaObject, "updatedBy", this::getCurrentUserId, Long.class);
+        strictInsertFill(metaObject, "updatedBy", this::getCurrentUserId, Long.class);
     }
 
     @Override
