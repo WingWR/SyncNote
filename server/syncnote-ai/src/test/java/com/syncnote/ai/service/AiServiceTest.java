@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AiServiceTest {
 
     private AIServiceImpl aiService;
+    private static final String TEST_TOKEN = "test-token";
 
     @BeforeEach
     void setUp() {
@@ -42,7 +43,7 @@ class AiServiceTest {
         request.setContext("Some context");
         request.setMessage("Continue writing");
 
-        ChatResponse response = aiService.processChat(request);
+        ChatResponse response = aiService.processChat(request, "test-token");
 
         assertNotNull(response);
         assertNotNull(response.getMessage());
@@ -56,7 +57,7 @@ class AiServiceTest {
         request.setMode("polish");
         request.setContext("Text to polish");
 
-        ChatResponse response = aiService.processChat(request);
+        ChatResponse response = aiService.processChat(request, "test-token");
 
         assertNotNull(response);
         assertNotNull(response.getMessage());
@@ -70,7 +71,7 @@ class AiServiceTest {
         request.setMode("chat");
         request.setMessage("What is this?");
 
-        ChatResponse response = aiService.processChat(request);
+        ChatResponse response = aiService.processChat(request, TEST_TOKEN);
 
         assertNotNull(response);
         assertNotNull(response.getMessage());
@@ -84,7 +85,7 @@ class AiServiceTest {
         request.setMode("continue");
         request.setContext("Some context");
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> aiService.processChat(request));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> aiService.processChat(request, TEST_TOKEN));
         assertTrue(ex.getMessage().contains("Invalid model ID"));
     }
 
@@ -94,13 +95,13 @@ class AiServiceTest {
         request.setModelId("test-model");
         request.setMode("invalid-mode");
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> aiService.processChat(request));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> aiService.processChat(request, TEST_TOKEN));
         assertTrue(ex.getMessage().contains("Invalid mode"));
     }
 
     @Test
     void testGetAvailableModels() {
-        List<ModelInfo> models = aiService.getAvailableModels();
+        List<ModelInfo> models = aiService.getAvailableModels(TEST_TOKEN);
 
         assertNotNull(models);
         assertEquals(1, models.size());
@@ -116,7 +117,7 @@ class AiServiceTest {
         request1.setMode("rewrite-continue");
         request1.setContext("context");
 
-        ChatResponse response1 = aiService.processChat(request1);
+        ChatResponse response1 = aiService.processChat(request1, TEST_TOKEN);
         assertNotNull(response1);
         assertTrue(response1.getMessage().contains("MOCK CONTINUE"));
 
@@ -126,7 +127,7 @@ class AiServiceTest {
         request2.setMode("rewrite-polish");
         request2.setContext("context");
 
-        ChatResponse response2 = aiService.processChat(request2);
+        ChatResponse response2 = aiService.processChat(request2, TEST_TOKEN);
         assertNotNull(response2);
         assertTrue(response2.getMessage().contains("MOCK POLISH"));
 
@@ -136,7 +137,7 @@ class AiServiceTest {
         request3.setMode("agent");
         request3.setMessage("question");
 
-        ChatResponse response3 = aiService.processChat(request3);
+        ChatResponse response3 = aiService.processChat(request3, TEST_TOKEN);
         assertNotNull(response3);
         assertTrue(response3.getMessage().contains("MOCK QA"));
     }
