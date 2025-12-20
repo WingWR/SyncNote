@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
@@ -147,45 +148,110 @@ public class DocumentServiceImpl implements IDocumentService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public DocumentDTO createDocument(CreateDocumentRequestDTO dto, String token) {
         Long userId = CurrentUserContext.getUserId();
         if (userId == null) {
             throw new IllegalArgumentException("用户未登录或 token 无效");
         }
 
-        // 创建文档对象
-        Document document = new Document();
-        document.setFileName(dto.getFileName());
-        document.setFileType(dto.getFileType());
-        document.setOwnerId(userId);
-        document.setStatus(DocStatus.Active);
-        document.setParentId(dto.getParentId());
-        // filePath 和 fileSize 为空，因为是空白文档
-        document.setFilePath(null);
-        document.setFileSize(0L);
+        // 验证文件类型
+        DocumentFileType.validate(dto.getFileType());
 
+        // 准备文件内容
+        byte[] content;
         // TODO: 如果提供了 templateId，从模板复制内容
-        // if (dto.getTemplateId() != null) {
-        //     // 从模板获取内容并设置到文档中
-        // }
+        if (dto.getTemplateId() != null) {
+             // 预留模板处理逻辑
+             // content = templateService.getTemplateContent(dto.getTemplateId());
+             // 目前暂时使用空白内容代替
+             content = generateDefaultContent(dto.getFileType());
+        } else {
+            content = generateDefaultContent(dto.getFileType());
+        }
 
-        // 插入文档记录
-        documentMapper.insert(document);
+        // 生成文件路径
+        String filePath = generateFilePath(userId, dto.getFileName());
+        String bucketName = storageConfigProvider.getBucketName();
+        String contentType = getContentType(dto.getFileType());
+        
+        // 上传文件到存储系统
+        String objectName;
+        try (java.io.InputStream inputStream = new java.io.ByteArrayInputStream(content)) {
+            objectName = storageService.uploadDocument(inputStream, content.length, contentType, bucketName, filePath);
+        } catch (Exception e) {
+            throw new RuntimeException("创建文档失败：文件存储异常", e);
+        }
 
-        // 在协作表中为创建者添加WRITE权限
-        DocumentCollaborator collaborator = new DocumentCollaborator();
-        collaborator.setDocumentId(document.getId());
-        collaborator.setUserId(userId);
-        collaborator.setPermission(DocumentCollaborator.Permission.WRITE);
-        documentCollaboratorMapper.insert(collaborator);
+        try {
+            // 创建文档对象
+            Document document = new Document();
+            document.setFileName(dto.getFileName());
+            document.setFileType(dto.getFileType());
+            document.setOwnerId(userId);
+            document.setStatus(DocStatus.Active);
+            document.setParentId(dto.getParentId());
+            document.setFilePath(objectName);
+            document.setFileSize((long) content.length);
 
-        // 转换为DTO
-        DocumentDTO responseDTO = new DocumentDTO();
-        BeanUtils.copyProperties(document, responseDTO);
-        responseDTO.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
-        responseDTO.setPermission(DocumentCollaborator.Permission.WRITE.toValue());
+            // 插入文档记录
+            documentMapper.insert(document);
 
-        return responseDTO;
+            // 在协作表中为创建者添加WRITE权限
+            DocumentCollaborator collaborator = new DocumentCollaborator();
+            collaborator.setDocumentId(document.getId());
+            collaborator.setUserId(userId);
+            collaborator.setPermission(DocumentCollaborator.Permission.WRITE);
+            documentCollaboratorMapper.insert(collaborator);
+
+            // 转换为DTO
+            DocumentDTO responseDTO = new DocumentDTO();
+            BeanUtils.copyProperties(document, responseDTO);
+            responseDTO.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
+            responseDTO.setPermission(DocumentCollaborator.Permission.WRITE.toValue());
+            
+            // 设置内容URL (虽然刚创建可能不需要立即获取，但保持一致性)
+            // String presignedUrl = storageService.getPresignedUrl(bucketName, document.getFilePath(), Duration.ofHours(1));
+            // responseDTO.setContentUrl(presignedUrl); // DocumentDTO没有contentUrl，DocumentDetailDTO才有
+
+            return responseDTO;
+        } catch (Exception e) {
+            // 数据库操作失败，清理已上传的文件
+            try {
+                storageService.deleteDocument(bucketName, objectName);
+            } catch (Exception deleteEx) {
+                logger.error("清理孤儿文件失败: {}", objectName, deleteEx);
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * 生成默认文档内容
+     * @param fileType 文件类型
+     * @return 文件内容字节数组
+     */
+    private byte[] generateDefaultContent(String fileType) {
+        if ("txt".equalsIgnoreCase(fileType) || "md".equalsIgnoreCase(fileType)) {
+            return "".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+        //TODO:生成默认ppt docx等
+        // 对于二进制文件(docx, pptx)，暂时创建一个空文件
+        // 实际生产中应该从预置的空白模板文件中读取
+        return new byte[0];
+    }
+
+    /**
+     * 获取文件ContentType
+     */
+    private String getContentType(String fileType) {
+        switch (fileType.toLowerCase()) {
+            case "txt": return "text/plain";
+            case "md": return "text/markdown";
+            case "docx": return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "pptx": return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            default: return "application/octet-stream";
+        }
     }
 
     @Override

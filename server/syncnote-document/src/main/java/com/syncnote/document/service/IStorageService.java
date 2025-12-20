@@ -20,6 +20,17 @@ public interface IStorageService {
      */
     String uploadDocument(MultipartFile file, String bucketName,String objectName);
 
+    /**
+     * 上传文件到指定桶 (InputStream版本)
+     * @param inputStream 文件流
+     * @param size 文件大小
+     * @param contentType 文件类型
+     * @param bucketName 存储桶名称（ 若为空，使用默认桶）
+     * @param objectName 对象名称（含路径）
+     * @return objectName (文件在存储系统中唯一标识）
+     */
+    String uploadDocument(java.io.InputStream inputStream, long size, String contentType, String bucketName, String objectName);
+
 
     /**
      * 生成预签名下载 URL

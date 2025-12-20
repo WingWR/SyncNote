@@ -13,9 +13,9 @@ public class DocumentFileType {
      */
     public static final Set<String> SUPPORTED_TYPES = Set.of(
             "txt",  // 文本文件
-            "md"    // Markdown文件
-            // 后续可以方便地添加更多类型：
-            // "docx", "pdf", "xlsx", etc.
+            "md",   // Markdown文件
+            "docx", // Word文档
+            "pptx"  // PowerPoint文档
     );
 
     /**
