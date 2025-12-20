@@ -65,6 +65,31 @@ public class MinIOStorageServiceImpl implements IStorageService {
     }
 
     @Override
+    public String uploadDocument(java.io.InputStream inputStream, long size, String contentType, String bucketName, String objectName) {
+        try {
+            String actualBucket = (bucketName != null && !bucketName.isEmpty()) ? bucketName : defaultBucket;
+
+            // 确保存储桶存在
+            if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(actualBucket).build())) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(actualBucket).build());
+            }
+
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(actualBucket)
+                            .object(objectName)
+                            .stream(inputStream, size, -1)
+                            .contentType(contentType)
+                            .build()
+            );
+
+            return objectName;
+        } catch (Exception e) {
+            throw new RuntimeException("MinIO 文件上传失败", e);
+        }
+    }
+
+    @Override
     public String getPresignedUrl(String bucketName, String objectName, Duration duration) {
         try {
             String actualBucket = (bucketName != null && !bucketName.isEmpty()) ? bucketName : defaultBucket;

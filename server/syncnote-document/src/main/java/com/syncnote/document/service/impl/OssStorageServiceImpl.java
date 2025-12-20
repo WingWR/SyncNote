@@ -44,6 +44,23 @@ public class OssStorageServiceImpl implements IStorageService {
     }
 
     @Override
+    public String uploadDocument(java.io.InputStream inputStream, long size, String contentType, String bucketName, String objectName) {
+        try {
+            String actualBucket = (bucketName != null && !bucketName.isEmpty()) ? bucketName : defaultBucket;
+            // OSS putObject can take InputStream
+            // For contentType, we might need ObjectMetadata, but for now simple putObject is enough
+            com.aliyun.oss.model.ObjectMetadata metadata = new com.aliyun.oss.model.ObjectMetadata();
+            metadata.setContentLength(size);
+            metadata.setContentType(contentType);
+            
+            ossClient.putObject(actualBucket, objectName, inputStream, metadata);
+            return objectName;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public String getPresignedUrl(String bucketName, String objectName, Duration duration) {
         String actualBucket = (bucketName != null && !bucketName.isEmpty()) ? bucketName : defaultBucket;
         java.util.Date expiration = new java.util.Date(System.currentTimeMillis() + duration.toMillis());
