@@ -165,7 +165,6 @@ import { marked } from 'marked'
 const route = useRoute()
 const documentStore = useDocumentStore()
 
-const editorContainer = ref<HTMLElement | null>(null)
 const textContent = ref('')
 const isSaving = ref(false) // 用于在界面上显示“保存中...”状态
 const showCollaboratorsDialog = ref(false)
