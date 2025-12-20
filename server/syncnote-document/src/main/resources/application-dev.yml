@@ -1,6 +1,6 @@
 storage:
   minio:
-    endpoint: http://localhost:9000
+    endpoint: http://139.196.151.22:9000
     access-key: admin
     secret-key: admin123
     bucket: syncnote-documents

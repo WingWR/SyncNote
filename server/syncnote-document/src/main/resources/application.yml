@@ -7,7 +7,7 @@ spring:
 # 默认配置（可被profile特定配置覆盖）
 storage:
   minio:
-    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    endpoint: ${MINIO_ENDPOINT:http://139.196.151.22:9000}
     accessKey: ${MINIO_ACCESS_KEY:admin}
     secretKey: ${MINIO_SECRET_KEY:admin123}
     bucket: ${MINIO_BUCKET:syncnote-documents}
