@@ -199,6 +199,9 @@ public class DocumentServiceImpl implements IDocumentService {
             // 插入文档记录
             documentMapper.insert(document);
 
+            // 创建Chunk内容
+            this.saveDocumentBinaryState(document.getId(), "");
+
             // 在协作表中为创建者添加WRITE权限
             DocumentCollaborator collaborator = new DocumentCollaborator();
             collaborator.setDocumentId(document.getId());
