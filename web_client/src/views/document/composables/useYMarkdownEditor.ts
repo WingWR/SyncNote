@@ -1,46 +1,38 @@
 import type { ShallowRef } from 'vue'
-import type { Editor } from '@tiptap/vue-3'
+import { Editor } from '@tiptap/vue-3'
 import { shallowRef, nextTick } from 'vue'
-import { useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { useUserStore } from '../../../stores/user'
+import { useYjsAutoSave } from './useYjsAutoSave'
 
-export function useMarkdownEditor(
+export function useYMarkdownEditor(
   container: HTMLElement | null,
-  docId: string
+  docId: string,
+  ydoc: Y.Doc,
+  provider: WebsocketProvider
 ) {
   const userStore = useUserStore()
-
-  const ydoc = new Y.Doc()
-  const ytext = ydoc.getText('content')
-
-  const wsUrl =
-    import.meta.env.VITE_WS_URL ||
-    `ws://localhost:8080/ws/document/${docId}`
-
-  const provider = new WebsocketProvider(
-    wsUrl,
-    `document-${docId}`,
-    ydoc
-  )
-
-  // TipTap 的标准类型（与你现在的一致）
+  // TipTap 的标准类型（与现在的一致）
   const editor: ShallowRef<Editor | undefined> = shallowRef()
+
+  // 使用统一保存逻辑
+  const { destroy: destroyAutoSave } = useYjsAutoSave(ydoc, docId)
 
   async function init() {
     await nextTick()
     if (!container) return
 
-    editor.value = useEditor({
+    editor.value = new Editor({
       element: container,
       extensions: [
-        StarterKit,
+        StarterKit.configure({ history: false }),
         Collaboration.configure({
-          document: ydoc
+          document: ydoc,
+          field: 'content' // 此处必须和ydoc一致
         }),
         CollaborationCursor.configure({
           provider,
@@ -49,21 +41,17 @@ export function useMarkdownEditor(
             color: '#3b82f6'
           }
         })
-      ],
-      content: ytext.toString()
-    }).value
+      ]
+    })
   }
 
   function destroy() {
+    destroyAutoSave()
     editor.value?.destroy()
-    provider.destroy()
-    ydoc.destroy()
   }
 
   return {
     editor,
-    ydoc,
-    ytext,
     init,
     destroy
   }
