@@ -22,14 +22,19 @@ export function getDocument(
 }
 
 // 获取 Yjs 二进制状态
-export const getDocumentState = (id: string) => {
-  return api.get<string>(`/api/document/${id}/state`);
-};
+export function getDocumentState(
+  id: string
+): Promise<ApiResponse<String>> {
+  return api.get<ApiResponse<string>>(`/api/document/${id}/state`);
+}
 
 // 更新 Yjs 二进制状态
-export const updateDocumentState = (id: string, base64State: string) => {
-  return api.post(`/api/document/${id}/state`, base64State);
-};
+export function updateDocumentState(
+  id: string,
+  base64State: string
+): Promise<ApiResponse<String>>{
+  return api.post<ApiResponse<String>>(`/api/document/${id}/state`, base64State);
+}
 
 export function createDocument(
   data: CreateDocumentRequest
