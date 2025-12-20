@@ -18,7 +18,6 @@ public class GlobalMetaObjectHandler implements MetaObjectHandler {
 
         // 填充创建者用户ID（从 JWT 中获取）
         strictInsertFill(metaObject, "createdBy", this::getCurrentUserId, Long.class);
-
         // 填充更新者用户ID（从 JWT 中获取）
         strictInsertFill(metaObject, "updatedBy", this::getCurrentUserId, Long.class);
     }
