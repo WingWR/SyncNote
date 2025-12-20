@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @TableName("user")
@@ -24,5 +24,5 @@ public class User {
     private String passwordHash;
 
     @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }
