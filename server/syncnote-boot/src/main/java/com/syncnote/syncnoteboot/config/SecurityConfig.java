@@ -18,7 +18,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 
-
 import java.util.Arrays;
 
 @Configuration
@@ -44,43 +43,39 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, com.syncnote.syncnoteboot.filter.JwtRequestFilter jwtRequestFilter) throws Exception {
         http
-            // 1. 禁用 CSRF
-            .csrf(csrf -> csrf.disable())
+                // 1. 禁用 CSRF
+                .csrf(csrf -> csrf.disable())
 
-            // 2. 配置跨域 (CORS)
-            .cors(Customizer.withDefaults())
+                // 2. 配置跨域 (CORS)
+                .cors(Customizer.withDefaults())
 
-            // 3. 设置 Session 管理为"无状态"
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                // 3. 设置 Session 管理为"无状态"
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-            // 4. 配置接口放行规则
-            .authorizeHttpRequests(auth -> auth
-                // 修正API路径：根据项目实际使用 /api/auth/** 路径
-                .requestMatchers("/api/auth/**").permitAll()
-                // 放行Actuator端点
-                .requestMatchers("/actuator/**").permitAll()
-                // 剩下的所有请求都需要经过认证
-                .anyRequest().authenticated()
-            )
+                // 4. 配置接口放行规则
+                .authorizeHttpRequests(auth -> auth
+                        // 修正API路径：根据项目实际使用 /api/auth/** 路径
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // 放行Actuator端点
+                        .requestMatchers("/actuator/**").permitAll()
+                        // 放行所有的WebSocket路径
+                        .requestMatchers("/ws/**").permitAll()
+                        // 剩下的所有请求都需要经过认证
+                        .anyRequest().authenticated()
+                )
 
-            // 5. 禁用默认的表单登录和 HTTP Basic 认证
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
+                // 5. 禁用默认的表单登录和 HTTP Basic 认证
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
 
-            // 6. 配置异常处理
-            .exceptionHandling(exception -> exception
-                .accessDeniedHandler(new com.syncnote.syncnoteboot.config.LoggingAccessDeniedHandler())
-                .authenticationEntryPoint(new com.syncnote.syncnoteboot.config.LoggingAuthenticationEntryPoint())
-            )
+                // 6. 配置异常处理
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(new com.syncnote.syncnoteboot.config.LoggingAccessDeniedHandler())
+                        .authenticationEntryPoint(new com.syncnote.syncnoteboot.config.LoggingAuthenticationEntryPoint())
+                )
         ;
-
-                
-
-
-
-
 
 
         // 将自定义 JWT 过滤器加入到 Spring Security 的过滤链，确保在授权决策前完成认证
@@ -93,7 +88,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
 
     /**
