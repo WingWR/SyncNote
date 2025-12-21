@@ -1,6 +1,6 @@
 import * as Y from 'yjs'
 import { debounce } from 'lodash-es'
-import { updateDocumentState } from '../../../api/document/service'
+import { updateDocumentState } from '../../../api/document'
 
 export function useYjsAutoSave(ydoc: Y.Doc, docId: string, delay = 3000) {
     const uint8ArrayToBase64 = (arr: Uint8Array) => btoa(String.fromCharCode(...arr))
