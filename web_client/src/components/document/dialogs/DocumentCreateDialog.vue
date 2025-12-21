@@ -1,11 +1,11 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  <div v-if="props.visible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
     @click.self="close">
     <div class="bg-white rounded-lg p-6 w-96">
       <h3 class="text-lg font-semibold mb-4">新建文件</h3>
-      <input :value="name" @input="onNameInput" type="text" placeholder="请输入文档名称"
+      <input :value="props.name" @input="onNameInput" type="text" placeholder="请输入文档名称"
         class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3" />
-      <select :value="type" @change="onTypeChange"
+      <select :value="props.type" @change="onTypeChange"
         class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4">
         <option value="txt">文本文件 (.txt)</option>
         <option value="md">Markdown (.md)</option>

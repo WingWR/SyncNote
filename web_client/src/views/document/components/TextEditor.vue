@@ -8,15 +8,15 @@
 </template>
 
 <script setup lang="ts">
-import type { Doc, Text } from 'yjs'
+import type { Doc } from 'yjs'
 import { useYTextEditor } from '../composables/useYTextEditor'
 
 interface Props {
   ydoc: Doc
-  ytext: Text
+  docId: string
 }
 
 const props = defineProps<Props>()
 
-const { textContent, handleTextInput } = useYTextEditor(props.ydoc, props.ytext)
+const { textContent, handleTextInput } = useYTextEditor(props.ydoc, props.docId)
 </script>
