@@ -2,6 +2,7 @@ package com.syncnote.document.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
+import com.syncnote.document.dto.request.GetDocumentDetailBase64State;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
 import com.syncnote.document.dto.response.DocumentDTO;
 import com.syncnote.document.mapper.DocumentChunkMapper;
@@ -208,7 +209,7 @@ public class DocumentServiceImpl implements IDocumentService {
 
             // 创建Chunk内容
             // 必须先有写权限才能写Chunk
-            this.saveDocumentBinaryState(document.getId(), "");
+            this.saveDocumentBinaryState(document.getId(), new GetDocumentDetailBase64State(""));
 
             // 转换为DTO
             DocumentDTO responseDTO = new DocumentDTO();
@@ -263,7 +264,10 @@ public class DocumentServiceImpl implements IDocumentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public DocumentDTO uploadDocument(MultipartFile file, Long parentId, String base64State, String token) {
+    public DocumentDTO uploadDocument(MultipartFile file,
+                                      Long parentId,
+                                      String base64State,
+                                      String token) {
         Long userId = CurrentUserContext.getUserId();
         if (userId == null) {
             throw new IllegalArgumentException("用户未登录或 token 无效");
@@ -314,7 +318,10 @@ public class DocumentServiceImpl implements IDocumentService {
 
         // 添加Chunk内容
         // 必须先有写权限才能写Chunk
-        this.saveDocumentBinaryState(document.getId(), base64State);
+        // 组装 DTO 传给 Service
+        GetDocumentDetailBase64State docContent = new GetDocumentDetailBase64State();
+        docContent.setBase64State(base64State);
+        this.saveDocumentBinaryState(document.getId(), docContent);
 
         // 转换为DTO
         DocumentDTO responseDTO = new DocumentDTO();
@@ -440,9 +447,18 @@ public class DocumentServiceImpl implements IDocumentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveDocumentBinaryState(Long docId, String base64State){
+    public void saveDocumentBinaryState(Long docId, GetDocumentDetailBase64State docContent){
         if(!checkWritePermission(docId)) throw new RuntimeException("没有写文件权限");
 
+        // 获取文档的Base64二进制信息
+        String base64State = docContent.getBase64State();
+
+        // 去掉按序列化的前后'\'
+        base64State = base64State.trim();
+        if (base64State.startsWith("\"") && base64State.endsWith("\"")) {
+            base64State = base64State.substring(1, base64State.length() - 1);
+        }
+        
         // 查找文件的内容
         DocumentChunk chunk = documentChunkMapper.selectOne(
                 new QueryWrapper<DocumentChunk>()
