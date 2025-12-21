@@ -91,12 +91,28 @@ import CollaboratorsManagementDialog from './components/CollaboratorsManagementD
 import ShareLink from '../../components/document/ShareLink.vue'
 
 const route = useRoute()
-const docId = route.params.id as string
 const documentStore = useDocumentStore()
 const userStore = useUserStore()
 
+// 协作编辑器状态
+let ydoc: any = null
+let provider: any = null
+let docId = route.params.id as string
+
+// 初始化协作底座的函数
+async function initCollaborativeEditor(editorDocId: string) {
+  const result = useCollaborativeEditor(editorDocId)
+  ydoc = result.ydoc
+  provider = result.provider
+  docId = editorDocId
+
+  // 手动初始化协作连接
+  await result.loadHistoryAndConnect()
+  return result
+}
+
 // 1. 初始化协作底座 (Y.Doc 和 WebSocket)
-const { ydoc, provider } = useCollaborativeEditor(docId)
+initCollaborativeEditor(docId)
 
 // 2. 响应式变量
 const editor = shallowRef<Editor | undefined>(undefined)
@@ -141,6 +157,11 @@ const setupAwareness = () => {
 async function initEditor() {
   const type = documentStore.currentDocument?.fileType
   const username = userStore.currentUser?.username || 'Anonymous'
+
+  // 确保协作编辑器已初始化
+  if (!ydoc || !provider) {
+    throw new Error('协作编辑器未初始化，无法创建编辑器实例')
+  }
 
   if (type === 'md') {
     // 销毁旧的编辑器实例
@@ -213,6 +234,11 @@ async function initEditor() {
 // 5. 加载文档及元数据
 async function loadDocument() {
   try {
+    // 确保协作编辑器已初始化
+    if (!ydoc || !provider) {
+      await initCollaborativeEditor(docId)
+    }
+
     const docResponse = await getDocument(docId)
     if (docResponse.code === 200) {
       documentStore.setCurrentDocument(docResponse.data)
@@ -235,21 +261,57 @@ watch(() => currentTxtHook?.textContent.value, (newVal) => {
   if (newVal !== undefined) textContent.value = newVal
 })
 
-onMounted(() => {
-  setupAwareness()
-  loadDocument()
-})
-
-onUnmounted(() => {
+// 清理编辑器和协作连接的函数
+async function cleanupEditor() {
+  // 清理编辑器实例
   if (editor.value) {
     editor.value.destroy()
+    editor.value = null
   }
   if (currentMdHook?.destroy) currentMdHook.destroy()
   if (currentTxtHook?.destroy) currentTxtHook.destroy()
 
-  // 销毁 Yjs 连接
-  if (provider) provider.destroy()
-  if (ydoc) ydoc.destroy()
+  // 清理Yjs连接和awareness监听器
+  if (provider) {
+    // 清理awareness监听器
+    if (provider.awareness) {
+      provider.awareness.off('change')
+    }
+    provider.disconnect()
+    provider.destroy()
+  }
+  if (ydoc) {
+    ydoc.destroy()
+  }
+
+  // 重置状态
+  currentMdHook = null
+  currentTxtHook = null
+  onlineUsers.value = []
+  ydoc = null
+  provider = null
+}
+
+// 监听路由参数变化，当文档ID变化时重新加载文档
+watch(() => route.params.id, async (newId, oldId) => {
+  if (newId && newId !== oldId) {
+    console.log('文档ID变化，从', oldId, '到', newId)
+
+    // 清理旧的编辑器实例和协作连接
+    await cleanupEditor()
+
+    // 更新文档ID并重新加载文档
+    docId = newId as string
+    await loadDocument()
+  }
+})
+
+onMounted(async () => {
+  await loadDocument()
+})
+
+onUnmounted(() => {
+  cleanupEditor()
 })
 
 // 刷新协作者

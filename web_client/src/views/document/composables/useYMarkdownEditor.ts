@@ -31,13 +31,34 @@ export function useYMarkdownEditor(
         StarterKit.configure({ history: false }),
         Collaboration.configure({
           document: ydoc,
-          field: 'content' // 此处必须和ydoc一致
+          field: 'content' // 使用 Text 类型的字段
         }),
         CollaborationCursor.configure({
           provider,
           user: {
             name: username,
             color: stringToColor(username)
+          },
+          render: (user) => {
+            // 光标本身 - 只显示颜色，不占据整行
+            const cursor = document.createElement('span')
+            cursor.classList.add('collaboration-cursor__caret')
+            cursor.setAttribute('style', `border-color: ${user.color}; border-left-width: 2px; border-left-style: solid; margin-left: -1px; display: inline-block; height: 1em;`)
+
+            // 用户名标签 - 显示在光标左上角作为上标
+            const label = document.createElement('span')
+            label.classList.add('collaboration-cursor__label')
+            label.setAttribute('style', `position: absolute; top: -1.2em; left: -1px; font-size: 10px; font-weight: 600; color: ${user.color}; background-color: rgba(255, 255, 255, 0.9); padding: 2px 4px; border-radius: 3px; border: 1px solid ${user.color}; white-space: nowrap; pointer-events: none; user-select: none; z-index: 10; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);`)
+            label.textContent = user.name
+
+            // 容器 - 使用相对定位，使标签能够相对于光标定位
+            const container = document.createElement('span')
+            container.classList.add('collaboration-cursor')
+            container.setAttribute('style', 'position: relative; display: inline-block; margin-left: -1px; margin-right: -1px;')
+            container.appendChild(cursor)
+            container.appendChild(label)
+
+            return container
           }
         })
       ]

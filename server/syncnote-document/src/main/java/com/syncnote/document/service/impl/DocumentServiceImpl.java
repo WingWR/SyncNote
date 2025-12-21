@@ -423,6 +423,33 @@ public class DocumentServiceImpl implements IDocumentService {
         documentMapper.deleteById(id);
     }
 
+    @Override
+    public void restoreDocument(Long id, String token) {
+        Long userId = CurrentUserContext.getUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("用户未登录或 token 无效");
+        }
+
+        // 查询文档，检查是否存在且用户是否为拥有者，且状态为Deleted
+        Document document = documentMapper.selectOne(
+                new QueryWrapper<Document>()
+                        .eq("id", id)
+                        .eq("owner_id", userId)
+                        .eq("status", DocStatus.Deleted)
+        );
+
+        if (document == null) {
+            throw new RuntimeException("文档不存在或无权限恢复（只有文档拥有者可以恢复回收站中的文档）");
+        }
+
+        // 恢复文档：将状态从Deleted改为Active
+        document.setStatus(DocStatus.Active);
+        document.setUpdatedAt(Instant.now());
+        documentMapper.updateById(document);
+
+        logger.info("文档已从回收站恢复: documentId={}, fileName={}", document.getId(), document.getFileName());
+    }
+
     /**
      * 获取文档的状态信息
      *

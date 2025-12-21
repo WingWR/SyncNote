@@ -38,7 +38,27 @@ export function useGlobalUserEditDialog() {
             }
 
             const response = await updateUser(updateData)
-            userStore.setUser(response.data)
+
+            if (response.code === 200) {
+                // 直接使用API返回的用户信息更新store
+                if (response.data) {
+                    userStore.setUser(response.data)
+                } else {
+                    // 如果API没有返回用户数据，手动构造更新后的用户数据
+                    const currentUser = userStore.currentUser
+                    if (currentUser) {
+                        const updatedUser = {
+                            ...currentUser,
+                            username: editForm.username,
+                            // 如果有新密码，也更新（虽然通常密码不会在响应中返回）
+                        }
+                        userStore.setUser(updatedUser)
+                    }
+                }
+            } else {
+                throw new Error(`更新失败: ${response.message || '未知错误'} (状态码: ${response.code})`)
+            }
+
             showEditDialog.value = false
 
             // 清空表单

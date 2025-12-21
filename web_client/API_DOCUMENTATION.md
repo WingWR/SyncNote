@@ -147,7 +147,22 @@
   - `file`: File (支持 .txt, .md, .docx, .pptx)
 - **响应**: 同文档列表中的单个文档对象
 
-### 3.7 加入共享文档
+### 3.7 获取回收站文档列表
+- **URL**: `GET /api/documents/trash`
+- **请求头**: 需要 Bearer Token
+- **响应**: 同文档列表格式
+
+### 3.8 永久删除文档
+- **URL**: `DELETE /api/documents/trash/{id}`
+- **请求头**: 需要 Bearer Token
+- **响应**: 无特定格式要求
+
+### 3.9 恢复文档
+- **URL**: `POST /api/documents/trash/{id}/restore`
+- **请求头**: 需要 Bearer Token
+- **响应**: 无特定格式要求
+
+### 3.10 加入共享文档
 - **URL**: `POST /api/documents/{id}/join`
 - **请求头**: 需要 Bearer Token
 - **响应**: 同文档列表中的单个文档对象
