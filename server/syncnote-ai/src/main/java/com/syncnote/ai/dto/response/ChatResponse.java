@@ -12,8 +12,5 @@ public class ChatResponse {
     
     private String message;
     private String context;
-
-
-
-   
+    private String reply;
 }
