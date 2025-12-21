@@ -66,7 +66,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Users, Share2 } from 'lucide-vue-next'
 import { EditorContent } from '@tiptap/vue-3'
-import { useDocumentStore } from '../../stores/document/index'
+import { useDocumentStore } from '../../stores/document'
 import { useUserStore } from '../../stores/user'
 import { getDocument, getCollaborators } from '../../api/document'
 

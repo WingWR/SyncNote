@@ -1,7 +1,7 @@
 import { ref, onUnmounted } from 'vue'
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
-import { getDocumentState } from '../../../api/document/service'
+import { getDocumentState } from '../../../api/document'
 
 export function useCollaborativeEditor(docId: string) {
   const ydoc = new Y.Doc()
@@ -16,7 +16,7 @@ export function useCollaborativeEditor(docId: string) {
       const res = await getDocumentState(docId.toString())
 
       if (res.code !== 200) {
-        throw new Error(res.message || '无法获取文档初始状态')
+        return Promise.reject(res.message || '无法获取文档初始状态')
       }
 
       // 如果有数据，应用状态
