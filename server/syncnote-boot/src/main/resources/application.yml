@@ -52,7 +52,7 @@ logging:
     com.syncnote.util.JWT: DEBUG
     org.springframework.security: DEBUG
     # 打开mapper 日志 查看 查询逻辑
-    # com.syncnote.document.mapper: DEBUG
+    #com.syncnote.document.mapper: DEBUG
 # AI Module Configuration
 syncnote:
   ai:
