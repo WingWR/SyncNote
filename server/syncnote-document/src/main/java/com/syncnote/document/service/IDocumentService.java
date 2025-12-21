@@ -1,6 +1,7 @@
 package com.syncnote.document.service;
 
 import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
+import com.syncnote.document.dto.request.GetDocumentDetailBase64State;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
 import com.syncnote.document.dto.response.DocumentDTO;
 import org.springframework.web.multipart.MultipartFile;
@@ -87,7 +88,7 @@ public interface IDocumentService {
      * 保存Y.js的二进制信息
      *
      * @param docId 文档的Id
-     * @param base64State 修改后的Y.js的二进制信息
+     * @param docContent 修改后的Y.js的二进制信息
      */
-    void saveDocumentBinaryState(Long docId, String base64State);
+    void saveDocumentBinaryState(Long docId, GetDocumentDetailBase64State docContent);
 }
