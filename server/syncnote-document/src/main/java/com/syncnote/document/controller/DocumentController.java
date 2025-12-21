@@ -138,4 +138,20 @@ public class DocumentController {
         documentService.permanentlyDeleteDocument(id, token);
         return ApiResponse.succeed("永久删除文档成功");
     }
+
+    /**
+     * 3.9 恢复文档（从回收站恢复）
+     * 将文档从软删除状态恢复到正常状态
+     *
+     * @param id         文档ID
+     * @param authHeader 认证令牌
+     */
+    @PostMapping("/trash/{id}/restore")
+    public ApiResponse<Void> restoreDocument(
+            @PathVariable("id") Long id,
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer", "").trim();
+        documentService.restoreDocument(id, token);
+        return ApiResponse.succeed("恢复文档成功");
+    }
 }

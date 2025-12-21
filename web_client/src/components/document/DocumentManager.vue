@@ -3,8 +3,7 @@
     <!-- 顶部操作栏 -->
     <div class="bg-white border-b border-gray-200 shrink-0">
       <div class="p-4">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-800">文档管理</h3>
+        <div class="flex items-center justify-end">
           <button @click="() => toggleTrash()" :class="[
             'flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-all font-medium',
             showTrash

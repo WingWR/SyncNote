@@ -15,6 +15,11 @@
         移至回收站
       </button>
 
+      <button v-if="showTrash && documentId" @click.stop="$emit('restore', documentId)"
+        class="flex items-center gap-2 w-full text-left px-4 py-2.5 text-sm text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors">
+        <RefreshCwIcon :size="16" />
+        恢复文件
+      </button>
       <button v-if="showTrash && documentId" @click.stop="$emit('permanent-delete', documentId)"
         class="flex items-center gap-2 w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
         <XIcon :size="16" />
@@ -28,7 +33,8 @@
 import {
   EditIcon,
   TrashIcon,
-  XIcon
+  XIcon,
+  RefreshCwIcon
 } from 'lucide-vue-next'
 
 interface Props {
@@ -43,6 +49,7 @@ defineProps<Props>()
 defineEmits<{
   open: [id: string]
   delete: [id: string]
+  restore: [id: string]
   'permanent-delete': [id: string]
 }>()
 </script>

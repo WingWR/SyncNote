@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-gradient-to-br from-white via-gray-50 to-white">
+  <div class="flex h-screen bg-gradient-to-br from-white via-gray-50 to-white" @click="handleContainerClick">
     <!-- 左侧边栏 -->
     <aside class="w-16 bg-white/95 backdrop-blur-sm border-r border-gray-100 flex flex-col relative shrink-0 shadow-lg rounded-r-2xl">
       <!-- 功能入口 -->
@@ -37,7 +37,7 @@
     </aside>
 
     <!-- 面板抽屉 -->
-    <SidebarPanel :title="getPanelTitle(sidebarStore.activePanel)" :z-index="getPanelZIndex(sidebarStore.activePanel)">
+    <SidebarPanel ref="sidebarPanelRef" :title="getPanelTitle(sidebarStore.activePanel)" :z-index="getPanelZIndex(sidebarStore.activePanel)">
       <DocumentManager v-if="sidebarStore.activePanel === 'document'" />
       <WorkspacePanel v-if="sidebarStore.activePanel === 'workspace'" />
       <AIChatPanel v-if="sidebarStore.activePanel === 'ai'" />
@@ -56,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { Home, FilePlus, FolderOpen, Bot } from 'lucide-vue-next'
 import DocumentManager from '../document/DocumentManager.vue'
 import WorkspacePanel from '../workplace/WorkspacePanel.vue'
@@ -67,6 +68,7 @@ import SidebarPanel from './SidebarPanel.vue'
 import { useSidebar } from '../../composables/sidebar/useSidebar'
 
 const { sidebarStore, goHome, handlePanelClick, getPanelTitle } = useSidebar()
+const sidebarPanelRef = ref<HTMLElement | null>(null)
 
 function getPanelZIndex(panel: string | null): number {
   // 为不同的面板设置不同的z-index，确保不会有重叠问题
@@ -80,6 +82,24 @@ function getPanelZIndex(panel: string | null): number {
     default:
       return 10
   }
+}
+
+// 点击容器处理函数 - 点击侧边栏以外的地方关闭侧边栏
+function handleContainerClick(event: MouseEvent) {
+  // 如果侧边栏没有打开，直接返回
+  if (!sidebarStore.activePanel) return
+
+  // 获取点击的目标元素
+  const target = event.target as HTMLElement
+
+  // 检查点击是否在左侧导航栏内
+  const sidebarElement = (event.currentTarget as HTMLElement)?.querySelector('aside')
+  if (sidebarElement && sidebarElement.contains(target)) {
+    return // 点击在左侧导航栏内，不关闭
+  }
+
+  // 点击在侧边栏以外的地方，关闭侧边栏
+  sidebarStore.closePanel()
 }
 </script>
 
