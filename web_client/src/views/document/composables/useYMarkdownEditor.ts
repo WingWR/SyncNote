@@ -28,7 +28,10 @@ export function useYMarkdownEditor(
     editor.value = new Editor({
       element,
       extensions: [
-        StarterKit.configure({ history: false }),
+        StarterKit.configure({
+          history: false,
+          // 禁用可能有问题的扩展
+        }),
         Collaboration.configure({
           document: ydoc,
           field: 'content' // 使用 Text 类型的字段
@@ -63,6 +66,27 @@ export function useYMarkdownEditor(
         })
       ]
     })
+
+    // 确保编辑器有一个有效的初始状态
+    setTimeout(() => {
+      if (editor.value) {
+        try {
+          // 确保光标位置有效
+          const { state } = editor.value
+          const { tr } = state
+          // 如果文档为空，确保有一个段落
+          if (state.doc.content.size === 0) {
+            const paragraph = state.schema.nodes.paragraph
+            if (paragraph) {
+              tr.insert(0, paragraph.create())
+              editor.value.view.dispatch(tr)
+            }
+          }
+        } catch (error) {
+          console.warn('[Editor] 初始化状态设置失败:', error)
+        }
+      }
+    }, 100)
   }
 
   function destroy() {
