@@ -52,6 +52,14 @@ export function useCollaborativeEditor(docId: string) {
           const errorMessage = updateError instanceof Error ? updateError.message : String(updateError)
           console.warn('[Yjs] 历史数据加载失败，从空状态开始:', errorMessage)
 
+          // 确保空状态的文档有一个基本的 Text 字段
+          ydoc.transact(() => {
+            const ytext = ydoc.getText('content')
+            if (ytext.length === 0) {
+              ytext.insert(0, '')
+            }
+          }, 'ensure-empty-content')
+
           // 记录迁移信息到本地存储，用于后续分析和恢复
           try {
             const migrationRecord = {
