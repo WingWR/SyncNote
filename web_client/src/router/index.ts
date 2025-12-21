@@ -8,7 +8,8 @@ import { homeRoutes } from './home'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: import.meta.env.DEV ? '/home' : '/login'
+    // redirect: import.meta.env.DEV ? '/home' : '/login'
+    redirect: '/login'
   },
   ...authRoutes,
   ...homeRoutes
