@@ -35,8 +35,13 @@ async function initEditor() {
   const docId = route.params.id as string
   if (!docId || !editorContainer.value) return
   ydoc = new Y.Doc()
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.host;
+  const wsUrl = import.meta.env.VITE_WS_URL || `${protocol}//${host}/ws/document`;
+
   provider = new WebsocketProvider(
-      import.meta.env.VITE_WS_URL || 'http://139.196.151.22:8080',
+      wsUrl,
       docId,
       ydoc
   )

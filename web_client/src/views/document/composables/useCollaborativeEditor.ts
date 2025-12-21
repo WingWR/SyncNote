@@ -7,7 +7,9 @@ export function useCollaborativeEditor(docId: string) {
   const ydoc = new Y.Doc()
   const isLoaded = ref(false) // 标记历史数据是否加载完成
 
-  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws/document'
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.host;
+  const wsUrl = `${protocol}//${host}/ws/document`;
   // 1. 初始化 Provider，但先不连接 (手动控制 connect)
   const provider = new WebsocketProvider(wsUrl, docId.toString(), ydoc, { connect: false })
 
