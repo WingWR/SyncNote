@@ -77,12 +77,6 @@ watch(
 </script>
 
 <style scoped>
-/* TipTap 基础样式补充（你也可以放到全局） */
-.ProseMirror {
-  outline: none;
-  min-height: 100%;
-}
-
 .ProseMirror p {
   margin: 0.75em 0;
 }
