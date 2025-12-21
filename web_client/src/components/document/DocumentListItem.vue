@@ -1,6 +1,7 @@
 <template>
-  <div class="group relative bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer overflow-hidden"
-       @click="!showTrash && $emit('open', doc.id)">
+  <div
+    class="group relative bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer overflow-hidden"
+    @click="!showTrash && $emit('open', doc.id)">
 
     <!-- 文档卡片内容 -->
     <div class="p-4">
@@ -49,14 +50,18 @@
 
             <!-- 右侧：权限状态 -->
             <div v-if="doc.permission" class="flex flex-col items-center gap-0.5 self-start">
-              <component :is="doc.permission === 'WRITE' ? EditIcon : EyeIcon" :size="14" :class="[
-                doc.permission === 'WRITE' ? 'text-green-600' : 'text-blue-600'
-              ]" />
+              <component
+                :is="doc.permission === 'OWNER' ? CrownIcon : (doc.permission === 'WRITE' ? EditIcon : EyeIcon)"
+                :size="14" :class="[
+                  doc.permission === 'OWNER' ? 'text-yellow-600' :
+                    doc.permission === 'WRITE' ? 'text-green-600' : 'text-blue-600'
+                ]" />
               <span :class="[
                 'text-xs font-medium',
-                doc.permission === 'WRITE' ? 'text-green-700' : 'text-blue-700'
+                doc.permission === 'OWNER' ? 'text-yellow-700' :
+                  doc.permission === 'WRITE' ? 'text-green-700' : 'text-blue-700'
               ]">
-                {{ doc.permission === 'WRITE' ? '可编辑' : '只读' }}
+                {{ doc.permission === 'OWNER' ? '拥有者' : (doc.permission === 'WRITE' ? '可编辑' : '只读') }}
               </span>
             </div>
           </div>
@@ -73,7 +78,8 @@ import {
   MoreVerticalIcon,
   EditIcon,
   EyeIcon,
-  ClockIcon
+  ClockIcon,
+  CrownIcon
 } from 'lucide-vue-next'
 import type { Document } from '../../stores/document/types'
 

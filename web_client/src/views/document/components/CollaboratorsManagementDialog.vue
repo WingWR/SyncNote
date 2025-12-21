@@ -63,13 +63,14 @@
               <!-- 权限标签 -->
               <span :class="[
                 'px-3 py-1 text-xs font-medium rounded-full',
-                collaborator.permission === 'WRITE'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-700'
+                collaborator.permission === 'OWNER' ? 'bg-yellow-100 text-yellow-700' :
+                  collaborator.permission === 'WRITE' ? 'bg-green-100 text-green-700' :
+                    'bg-gray-100 text-gray-700'
               ]">
-                <component :is="collaborator.permission === 'WRITE' ? EditIcon : EyeIcon" :size="12"
-                  class="inline mr-1" />
-                {{ collaborator.permission === 'WRITE' ? '可编辑' : '只读' }}
+                <component
+                  :is="collaborator.permission === 'OWNER' ? CrownIcon : (collaborator.permission === 'WRITE' ? EditIcon : EyeIcon)"
+                  :size="12" class="inline mr-1" />
+                {{ collaborator.permission === 'OWNER' ? '拥有者' : (collaborator.permission === 'WRITE' ? '可编辑' : '只读') }}
               </span>
 
               <!-- 操作按钮 -->
@@ -115,7 +116,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { XIcon, EyeIcon, EditIcon, RefreshCwIcon, Trash2Icon, PlusIcon, UsersIcon } from 'lucide-vue-next'
+import { XIcon, EyeIcon, EditIcon, RefreshCwIcon, Trash2Icon, PlusIcon, UsersIcon, CrownIcon } from 'lucide-vue-next'
 import { getCollaborators, updateCollaboratorPermission, removeCollaborator } from '../../../api/document'
 import type { DocumentCollaborator } from '../../../stores/document/types'
 import { useUserStore } from '../../../stores/user'
@@ -124,7 +125,7 @@ interface Props {
   visible: boolean
   documentId: string | null
   documentOwnerId?: string
-  currentUserPermission?: 'READ' | 'WRITE'
+  currentUserPermission?: 'READ' | 'WRITE' | 'OWNER'
 }
 
 const props = defineProps<Props>()
