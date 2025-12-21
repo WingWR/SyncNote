@@ -31,6 +31,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
+            String path = request.getRequestURI();
+            // 如果是 WebSocket 握手路径，直接放行，不要走 JWT 校验
+            if (path.startsWith("/ws/")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             String authHeader = request.getHeader("Authorization");
             String token = null;
             if (authHeader != null && authHeader.toLowerCase().startsWith("bearer")) {
