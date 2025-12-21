@@ -10,9 +10,10 @@ import { useUserStore } from '../../../stores/user'
 import { useYjsAutoSave } from './useYjsAutoSave'
 
 export function useYMarkdownEditor(
-  docId: string,
-  ydoc: Y.Doc,
-  provider: WebsocketProvider
+    element: HTMLElement,
+    docId: string,
+    ydoc: Y.Doc,
+    provider: WebsocketProvider
 ) {
   const userStore = useUserStore()
   // TipTap 的标准类型（与现在的一致）
@@ -25,6 +26,7 @@ export function useYMarkdownEditor(
     const username = userStore.currentUser?.username || 'Anonymous'
 
     editor.value = new Editor({
+      element,
       extensions: [
         StarterKit.configure({ history: false }),
         Collaboration.configure({

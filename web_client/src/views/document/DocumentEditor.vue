@@ -40,7 +40,6 @@
     <div class="flex-1 overflow-auto p-6">
       <div v-if="documentStore.currentDocument?.fileType === 'md'" ref="mdEditorContainer"
         class="prose max-w-none focus:outline-none">
-        <editor-content :editor="editor" />
       </div>
 
       <textarea v-else-if="documentStore.currentDocument?.fileType === 'txt'" v-model="textContent"
@@ -63,9 +62,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { Users, Share2 } from 'lucide-vue-next'
-import { EditorContent } from '@tiptap/vue-3'
 import { useDocumentStore } from '../../stores/document'
 import { useUserStore } from '../../stores/user'
 import { getDocument, getCollaborators } from '../../api/document'
@@ -86,6 +85,7 @@ const { ydoc, provider } = useCollaborativeEditor(docId)
 
 // 2. 响应式变量
 const editor = ref<any>(null)
+const mdEditorContainer = ref<HTMLElement | null>(null)
 const textContent = ref('')
 const handleTextInput = ref<any>(() => { })
 const onlineUsers = ref<any[]>([])
@@ -118,9 +118,11 @@ async function initEditor() {
   const type = documentStore.currentDocument?.fileType
 
   if (type === 'md') {
-    currentMdHook = useYMarkdownEditor(docId, ydoc, provider)
-    await currentMdHook.init()
-    editor.value = currentMdHook.editor.value
+    if (mdEditorContainer.value){
+      currentMdHook = useYMarkdownEditor(mdEditorContainer.value, docId, ydoc, provider)
+      await currentMdHook.init()
+      editor.value = currentMdHook.editor.value
+    }
   } else if (type === 'txt') {
     currentTxtHook = useYTextEditor(ydoc, docId)
     textContent.value = currentTxtHook.textContent.value
@@ -134,6 +136,9 @@ async function loadDocument() {
     const docResponse = await getDocument(docId)
     if (docResponse.code === 200) {
       documentStore.setCurrentDocument(docResponse.data)
+
+      // 等待 Vue 更新 DOM，确保 v-if 里的 ref="mdEditorContainer" 可用
+      await nextTick()
       await initEditor() // 初始化对应的 Yjs 编辑器
       setupAwareness()   // 初始化在线人数统计
 
@@ -164,8 +169,8 @@ onUnmounted(() => {
   if (currentTxtHook?.destroy) currentTxtHook.destroy()
 
   // 销毁 Yjs 连接
-  provider.destroy()
-  ydoc.destroy()
+  if (provider) provider.destroy()
+  if (ydoc) ydoc.destroy()
 })
 
 // 刷新协作者

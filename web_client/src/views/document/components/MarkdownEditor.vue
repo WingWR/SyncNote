@@ -9,7 +9,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useMarkdownEditor } from '../composables/useYMarkdownEditor'
+import { useYMarkdownEditor } from '../composables/useYMarkdownEditor'
+
+import * as Y from 'yjs'
+import { WebsocketProvider } from 'y-websocket'
 
 /**
  * TipTap 挂载容器
@@ -18,8 +21,11 @@ const editorContainer = ref<HTMLElement | null>(null)
 
 const route = useRoute()
 
+let ydoc: Y.Doc | null = null
+let provider: WebsocketProvider | null = null
+
 let editorInstance:
-  | ReturnType<typeof useMarkdownEditor>
+  | ReturnType<typeof useYMarkdownEditor>
   | null = null
 
 /**
@@ -28,10 +34,17 @@ let editorInstance:
 async function initEditor() {
   const docId = route.params.id as string
   if (!docId || !editorContainer.value) return
-
-  editorInstance = useMarkdownEditor(
-    editorContainer.value,
-    docId
+  ydoc = new Y.Doc()
+  provider = new WebsocketProvider(
+      import.meta.env.VITE_WS_URL || 'http://139.196.151.22:8080',
+      docId,
+      ydoc
+  )
+  editorInstance = useYMarkdownEditor(
+      editorContainer.value, // 第1个参数：DOM 容器
+      docId,                 // 第2个参数：文档 ID
+      ydoc,                  // 第3个参数：Yjs Doc
+      provider               // 第4个参数：WS Provider
   )
 
   await editorInstance.init()
