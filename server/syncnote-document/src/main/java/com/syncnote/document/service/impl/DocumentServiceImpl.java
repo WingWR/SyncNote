@@ -215,7 +215,7 @@ public class DocumentServiceImpl implements IDocumentService {
             DocumentDTO responseDTO = new DocumentDTO();
             BeanUtils.copyProperties(document, responseDTO);
             responseDTO.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
-            responseDTO.setPermission(DocumentCollaborator.Permission.WRITE.toValue());
+            responseDTO.setPermission(DocumentCollaborator.Permission.OWNER.toValue());
 
             // 设置内容URL (虽然刚创建可能不需要立即获取，但保持一致性)
             // String presignedUrl = storageService.getPresignedUrl(bucketName, document.getFilePath(), Duration.ofHours(1));
