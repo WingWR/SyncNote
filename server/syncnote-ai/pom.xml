@@ -67,6 +67,11 @@
             <artifactId>syncnote-util</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.syncnote</groupId>
+            <artifactId>syncnote-document</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 </project>
