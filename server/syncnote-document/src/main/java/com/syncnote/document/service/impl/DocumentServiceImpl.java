@@ -417,11 +417,10 @@ public class DocumentServiceImpl implements IDocumentService {
     }
 
     /**
-     * 获取权限字符串
-     * 文档拥有者默认为WRITE权限，协作者从协作表中获取权限
+     * 获取文档的状态信息
      *
      * @param docId    文档Id
-     * @return   文档的具体内容
+     * @return   Y.js的二进制状态
      */
     @Override
     public String getDocumentBinaryState(Long docId) {
@@ -524,7 +523,7 @@ public class DocumentServiceImpl implements IDocumentService {
         return String.format("%s/%s-%s", datePath, uuid, originalFilename);
     }
 
-    private DocumentCollaborator.Permission getPermission(Long docId) {
+    private DocumentCollaborator.Permission getPermissionFromDocId(Long docId) {
         Long userId = CurrentUserContext.getUserId();
         if (userId == null) return null;
 
@@ -538,12 +537,12 @@ public class DocumentServiceImpl implements IDocumentService {
     }
 
     private Boolean checkReadPermission(Long docId) {
-        DocumentCollaborator.Permission p = getPermission(docId);
+        DocumentCollaborator.Permission p = getPermissionFromDocId(docId);
         return p != null && p.canRead();
     }
 
     private Boolean checkWritePermission(Long docId) {
-        DocumentCollaborator.Permission p = getPermission(docId);
+        DocumentCollaborator.Permission p = getPermissionFromDocId(docId);
         return p != null && p.canWrite();
     }
 }

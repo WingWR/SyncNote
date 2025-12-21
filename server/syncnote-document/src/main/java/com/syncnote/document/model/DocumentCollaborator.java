@@ -50,7 +50,4 @@ public class DocumentCollaborator {
 
     @TableField(fill = FieldFill.INSERT)
     private Instant createdAt;
-
-
-
 }

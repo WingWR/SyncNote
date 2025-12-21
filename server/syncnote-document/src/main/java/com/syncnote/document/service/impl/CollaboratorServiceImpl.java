@@ -101,7 +101,7 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
                             .eq("user_id", userId)
             );
             canAdd = currentUserCollaborator != null 
-                    && DocumentCollaborator.Permission.WRITE.equals(currentUserCollaborator.getPermission());
+                    && currentUserCollaborator.getPermission().canWrite();
         }
 
         if (!canAdd) {
@@ -127,7 +127,7 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
         // 验证权限值
         DocumentCollaborator.Permission permission = convertStringToPermission(request.getPermission());
         if (permission == null) {
-            throw new IllegalArgumentException("权限值无效，只能是 'read' 或 'write'");
+            throw new IllegalArgumentException("权限值无效，只能是 'read', 'owner' 或 'write'");
         }
 
         // 创建协作者记录
@@ -161,7 +161,7 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
             throw new RuntimeException("文档不存在");
         }
 
-        // 验证当前用户是否有权限移除协作者（只有文档拥有者或具有WRITE权限的协作者可以移除）
+        // 验证当前用户是否有权限移除协作者（只有文档拥有者可以移除）
         boolean canRemove;
         if (document.getOwnerId().equals(userId)) {
             canRemove = true;
@@ -172,7 +172,7 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
                             .eq("user_id", userId)
             );
             canRemove = currentUserCollaborator != null 
-                    && DocumentCollaborator.Permission.WRITE.equals(currentUserCollaborator.getPermission());
+                    && currentUserCollaborator.getPermission().isOwner();
         }
 
         if (!canRemove) {
@@ -266,7 +266,7 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
                             .eq("user_id", userId)
             );
             canUpdate = currentUserCollaborator != null 
-                    && DocumentCollaborator.Permission.WRITE.equals(currentUserCollaborator.getPermission());
+                    && DocumentCollaborator.Permission.OWNER.equals(currentUserCollaborator.getPermission());
         }
 
         if (!canUpdate) {
