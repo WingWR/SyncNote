@@ -70,11 +70,20 @@ public interface IDocumentService {
     /**
      * 永久删除回收站中的文档（硬删除）
      * 只有文档拥有者才能永久删除，会从数据库和存储系统中彻底删除
-     * 
+     *
      * @param id 文档ID
      * @param token 用户认证令牌
      */
     void permanentlyDeleteDocument(Long id, String token);
+
+    /**
+     * 恢复文档（从回收站恢复）
+     * 将文档从软删除状态恢复到正常状态
+     *
+     * @param id 文档ID
+     * @param token 用户认证令牌
+     */
+    void restoreDocument(Long id, String token);
 
     /**
      * 获取Y.js的二进制信息

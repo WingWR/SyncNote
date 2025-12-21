@@ -33,12 +33,20 @@ export function useDocumentActions(state: {
     state.documents.value = state.documents.value.filter(d => d.id !== docId)
   }
 
+  function restoreDocument(docId: string) {
+    const doc = state.documents.value.find(d => d.id === docId)
+    if (doc) {
+      doc.isDeleted = false
+    }
+  }
+
   return {
     setDocuments,
     setCurrentDocument,
     setCollaborators,
     addDocument,
     updateDocument,
-    removeDocument
+    removeDocument,
+    restoreDocument
   }
 }

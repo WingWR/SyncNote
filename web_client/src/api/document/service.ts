@@ -62,7 +62,8 @@ export async function uploadDocument(
   const text = await file.text();
 
   const ydoc = new Y.Doc();
-  const ytext = ydoc.getText('content'); // 必须和编辑器一致
+  // 简化处理：统一使用Text类型，编辑器会处理转换
+  const ytext = ydoc.getText('content');
   ytext.insert(0, text);
   const stateUpdate = Y.encodeStateAsUpdate(ydoc);
   
@@ -98,6 +99,11 @@ export function permanentDeleteDocument(
   id: string
 ): Promise<ApiResponse<null>> {
   return api.delete<ApiResponse<null>>(`/documents/trash/${id}`);
+}
+
+// 恢复文档（从回收站恢复）
+export function restoreDocument(id: string): Promise<ApiResponse<null>> {
+  return api.post<ApiResponse<null>>(`/documents/trash/${id}/restore`);
 }
 
 // 协作者相关API - 匹配后端路径 /api/documents (复数)

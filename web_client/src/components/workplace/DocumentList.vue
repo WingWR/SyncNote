@@ -59,11 +59,12 @@
 import { FileText, Lock } from 'lucide-vue-next'
 import type { Document } from '../../stores/document/types'
 
-const {} = defineProps<{
+defineProps<{
   documentsWithPermission: Document[]
   documentsWithoutPermission: Document[]
   currentDocId: string | null
   openDocument: (docId: string) => void
   getFileTypeIcon: (type: string) => string
 }>()
+
 </script>
