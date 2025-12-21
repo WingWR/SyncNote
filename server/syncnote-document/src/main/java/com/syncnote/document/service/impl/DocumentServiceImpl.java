@@ -91,7 +91,7 @@ public class DocumentServiceImpl implements IDocumentService {
             BeanUtils.copyProperties(document, dto);
             dto.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
 
-            // 设置权限：如果是文档拥有者，权限为WRITE；否则从协作表中获取权限
+            // 设置权限：如果是文档拥有者，权限为Owner；否则从协作表中获取权限
             dto.setPermission(getPermissionString(document, userId, docPermissionMap));
 
             return dto;
@@ -131,9 +131,9 @@ public class DocumentServiceImpl implements IDocumentService {
         BeanUtils.copyProperties(document, dto);
         dto.setIsDeleted(DocStatus.Deleted.equals(document.getStatus()));
 
-        // 设置权限：如果是文档拥有者，权限为WRITE；否则从协作表中获取权限
+        // 设置权限：如果是文档拥有者，权限为OWNER；否则从协作表中获取权限
         if (document.getOwnerId().equals(userId)) {
-            dto.setPermission(DocumentCollaborator.Permission.WRITE.toValue());
+            dto.setPermission(DocumentCollaborator.Permission.OWNER.toValue());
         } else if (collaborator != null) {
             dto.setPermission(collaborator.getPermission().toValue());
         } else {
@@ -474,18 +474,19 @@ public class DocumentServiceImpl implements IDocumentService {
 
     /**
      * 获取权限字符串
-     * 文档拥有者默认为WRITE权限，协作者从协作表中获取权限
+     * 文档拥有者默认为Owner权限，协作者从协作表中获取权限
      *
      * @param document         文档对象
      * @param userId           当前用户ID
      * @param docPermissionMap 文档ID到权限的映射
-     * @return 权限字符串 ("WRITE" 或 "READ")
+     * @return 权限字符串
      */
     private String getPermissionString(Document document, Long userId, Map<Long, DocumentCollaborator.Permission> docPermissionMap) {
-        // 如果是文档拥有者，权限为WRITE
+        // 如果是文档拥有者，权限为Owner
         if (document.getOwnerId().equals(userId)) {
-            return DocumentCollaborator.Permission.WRITE.toValue();
+            return DocumentCollaborator.Permission.OWNER.toValue();
         }
+
         // 否则从协作表中获取权限，默认为READ
         DocumentCollaborator.Permission permission = docPermissionMap.get(document.getId());
         return permission != null ? permission.toValue() : DocumentCollaborator.Permission.READ.toValue();

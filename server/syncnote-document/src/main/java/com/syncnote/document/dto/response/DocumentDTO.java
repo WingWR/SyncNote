@@ -25,6 +25,6 @@ public class DocumentDTO {
     private Boolean isDeleted;         // 是否已删除（软删除标记）
     private Instant createdAt;
     private Instant updatedAt;
-    private String permission;         // 当前用户对该文档的权限 ("WRITE" 或 "READ")
+    private String permission;         // 当前用户对该文档的权限
 }
 
