@@ -96,6 +96,8 @@ import { useGlobalDocumentMenuStore } from '../../stores/globalDocumentMenu'
 
 // Icons
 import {
+  TrashIcon,
+  FileTextIcon,
   RefreshCwIcon
 } from 'lucide-vue-next'
 
