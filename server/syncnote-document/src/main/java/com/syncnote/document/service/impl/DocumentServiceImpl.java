@@ -199,11 +199,11 @@ public class DocumentServiceImpl implements IDocumentService {
             // 插入文档记录
             documentMapper.insert(document);
 
-            // 在协作表中为创建者添加WRITE权限
+            // 在协作表中为创建者添加OWNER权限
             DocumentCollaborator collaborator = new DocumentCollaborator();
             collaborator.setDocumentId(document.getId());
             collaborator.setUserId(userId);
-            collaborator.setPermission(DocumentCollaborator.Permission.WRITE);
+            collaborator.setPermission(DocumentCollaborator.Permission.OWNER);
             documentCollaboratorMapper.insert(collaborator);
 
             // 创建Chunk内容
@@ -305,11 +305,11 @@ public class DocumentServiceImpl implements IDocumentService {
         // 插入文档记录
         documentMapper.insert(document);
 
-        // 在协作表中为创建者添加WRITE权限
+        // 在协作表中为创建者添加OWNER权限
         DocumentCollaborator collaborator = new DocumentCollaborator();
         collaborator.setDocumentId(document.getId());
         collaborator.setUserId(userId);
-        collaborator.setPermission(DocumentCollaborator.Permission.WRITE);
+        collaborator.setPermission(DocumentCollaborator.Permission.OWNER);
         documentCollaboratorMapper.insert(collaborator);
 
         // 添加Chunk内容

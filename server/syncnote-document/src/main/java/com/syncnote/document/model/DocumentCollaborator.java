@@ -21,6 +21,7 @@ public class DocumentCollaborator {
     private Long userId;
 
     public enum Permission {
+        OWNER,
         WRITE,
         READ;
 
@@ -34,11 +35,15 @@ public class DocumentCollaborator {
         }
 
         public boolean canRead() {
-            return this == READ || this == WRITE;
+            return this == OWNER || this == WRITE || this == READ;
         }
 
         public boolean canWrite() {
-            return this == WRITE;
+            return this == OWNER || this == WRITE;
+        }
+
+        public boolean isOwner() {
+            return this == OWNER;
         }
     }
     private Permission permission;
