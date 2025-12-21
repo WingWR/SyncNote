@@ -105,8 +105,8 @@ class AiServiceTest {
 
         assertNotNull(models);
         assertEquals(1, models.size());
-        assertEquals("test-model", models.getFirst().getModelId());
-        assertEquals("mock", models.getFirst().getProviderId());
+        assertEquals("test-model", models.getFirst().getId());
+        assertEquals("mock", models.getFirst().getProvider());
     }
 
     @Test
