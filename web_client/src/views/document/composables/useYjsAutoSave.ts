@@ -25,7 +25,7 @@ export function useYjsAutoSave(ydoc: Y.Doc, docId: string, delay = 3000) {
     }, delay)
 
     // 监听 ydoc 更新
-    ydoc.on('update', (update, origin) => {
+    ydoc.on('update', (_update, origin) => {
         // 如果是初始化加载，不要触发保存，否则会造成死循环或无效请求
         if (origin === 'local-initial-load') return;
 
