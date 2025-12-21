@@ -1,6 +1,6 @@
 import type { ShallowRef } from 'vue'
 import { Editor } from '@tiptap/vue-3'
-import { shallowRef, nextTick } from 'vue'
+import { shallowRef } from 'vue'
 import StarterKit from '@tiptap/starter-kit'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
@@ -10,7 +10,6 @@ import { useUserStore } from '../../../stores/user'
 import { useYjsAutoSave } from './useYjsAutoSave'
 
 export function useYMarkdownEditor(
-  container: HTMLElement | null,
   docId: string,
   ydoc: Y.Doc,
   provider: WebsocketProvider
@@ -23,11 +22,9 @@ export function useYMarkdownEditor(
   const { destroy: destroyAutoSave } = useYjsAutoSave(ydoc, docId)
 
   async function init() {
-    await nextTick()
-    if (!container) return
+    const username = userStore.currentUser?.username || 'Anonymous'
 
     editor.value = new Editor({
-      element: container,
       extensions: [
         StarterKit.configure({ history: false }),
         Collaboration.configure({
@@ -37,8 +34,8 @@ export function useYMarkdownEditor(
         CollaborationCursor.configure({
           provider,
           user: {
-            name: userStore.currentUser?.username || 'Anonymous',
-            color: '#3b82f6'
+            name: username,
+            color: stringToColor(username)
           }
         })
       ]
@@ -48,6 +45,17 @@ export function useYMarkdownEditor(
   function destroy() {
     destroyAutoSave()
     editor.value?.destroy()
+  }
+
+  // 根据用户名随机分配颜色，减少相同
+  function stringToColor(str: string) {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash)
+    }
+
+    const hue = Math.abs(hash) % 360
+    return `hsl(${hue}, 70%, 50%)`
   }
 
   return {
