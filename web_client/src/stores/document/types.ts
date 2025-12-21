@@ -9,13 +9,13 @@ export interface Document {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  permission: "READ" | "WRITE"; // 匹配后端大写格式，必选
+  permission: "READ" | "WRITE" | "OWNER"; // 匹配后端大写格式，必选
 }
 
 export interface DocumentCollaborator {
   id: string;
   documentId: string;
   userId: string;
-  permission: "READ" | "WRITE"; // 匹配后端大写格式
+  permission: "READ" | "WRITE" | "OWNER"; // 匹配后端大写格式
   joinedAt: string;
 }

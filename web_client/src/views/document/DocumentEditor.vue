@@ -19,8 +19,7 @@
           <div class="flex -space-x-2">
             <div v-for="(user, index) in onlineUsers.slice(0, 3)" :key="index"
               class="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold"
-              :style="{ backgroundColor: user.color || '#3b82f6' }"
-              :title="user.name">
+              :style="{ backgroundColor: user.color || '#3b82f6' }" :title="user.name">
               {{ user.name.charAt(0).toUpperCase() }}
             </div>
           </div>
@@ -39,16 +38,13 @@
     </div>
 
     <div class="flex-1 overflow-auto p-6">
-      <div v-if="documentStore.currentDocument?.fileType === 'md'" 
-           ref="mdEditorContainer" 
-           class="prose max-w-none focus:outline-none">
+      <div v-if="documentStore.currentDocument?.fileType === 'md'" ref="mdEditorContainer"
+        class="prose max-w-none focus:outline-none">
         <editor-content :editor="editor" />
       </div>
 
-      <textarea v-else-if="documentStore.currentDocument?.fileType === 'txt'" 
-        v-model="textContent"
-        @input="handleTextInput" 
-        class="w-full h-full border-none outline-none resize-none font-mono text-sm"
+      <textarea v-else-if="documentStore.currentDocument?.fileType === 'txt'" v-model="textContent"
+        @input="handleTextInput" class="w-full h-full border-none outline-none resize-none font-mono text-sm"
         placeholder="开始输入...">
       </textarea>
 
@@ -60,10 +56,9 @@
     <CollaboratorsManagementDialog v-model:visible="showCollaboratorsDialog"
       :document-id="documentStore.currentDocument?.id || null"
       :document-owner-id="documentStore.currentDocument?.ownerId"
-      :current-user-permission="documentStore.currentDocument?.permission"
-      @refresh="refreshCollaborators" />
+      :current-user-permission="documentStore.currentDocument?.permission" @refresh="refreshCollaborators" />
 
-    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -87,13 +82,12 @@ const documentStore = useDocumentStore()
 const userStore = useUserStore()
 
 // 1. 初始化协作底座 (Y.Doc 和 WebSocket)
-const { ydoc, provider } = useCollaborativeEditor(Number(docId))
+const { ydoc, provider } = useCollaborativeEditor(docId)
 
 // 2. 响应式变量
-const mdEditorContainer = ref<HTMLElement | null>(null)
 const editor = ref<any>(null)
 const textContent = ref('')
-const handleTextInput = ref<any>(() => {})
+const handleTextInput = ref<any>(() => { })
 const onlineUsers = ref<any[]>([])
 
 const showShareDialog = ref(false)
@@ -103,34 +97,35 @@ const showCollaboratorsDialog = ref(false)
 let currentMdHook: any = null
 let currentTxtHook: any = null
 
+const setupAwareness = () => {
+  if (!provider) return
+
+  provider.awareness.setLocalStateField('user', {
+    name: userStore.currentUser?.username || '匿名用户',
+    color: '#' + Math.floor(Math.random() * 16777215).toString(16)
+  })
+
+  provider.awareness.on('change', () => {
+    const states = provider.awareness.getStates()
+    // 转换为数组并过滤掉空值
+    onlineUsers.value = Array.from(states.values())
+      .map((s: any) => s.user)
+      .filter(Boolean)
+  })
+}
+
 async function initEditor() {
   const type = documentStore.currentDocument?.fileType
 
   if (type === 'md') {
-    currentMdHook = useYMarkdownEditor(mdEditorContainer.value, docId, ydoc, provider)
+    currentMdHook = useYMarkdownEditor(docId, ydoc, provider)
     await currentMdHook.init()
     editor.value = currentMdHook.editor.value
   } else if (type === 'txt') {
-    const hook = useYTextEditor(ydoc, docId)
-    textContent.value = hook.textContent.value
-    handleTextInput.value = hook.handleTextInput
-    currentTxtHook = hook
+    currentTxtHook = useYTextEditor(ydoc, docId)
+    textContent.value = currentTxtHook.textContent.value
+    handleTextInput.value = currentTxtHook.handleTextInput
   }
-}
-
-// 4. 监听在线人数变化 (Awareness)
-const setupAwareness = () => {
-  // 设置自己的在线信息
-  provider.awareness.setLocalStateField('user', {
-    name: userStore.currentUser?.username || '匿名用户',
-    color: '#' + Math.floor(Math.random()*16777215).toString(16)
-  })
-
-  // 监听他人进入/退出
-  provider.awareness.on('change', () => {
-    const states = provider.awareness.getStates()
-    onlineUsers.value = Array.from(states.values()).map((s: any) => s.user).filter(Boolean)
-  })
 }
 
 // 5. 加载文档及元数据
@@ -141,7 +136,7 @@ async function loadDocument() {
       documentStore.setCurrentDocument(docResponse.data)
       await initEditor() // 初始化对应的 Yjs 编辑器
       setupAwareness()   // 初始化在线人数统计
-      
+
       // 加载协作者列表 (用于管理对话框)
       const collabs = await getCollaborators(docId)
       if (collabs.code === 200) documentStore.setCollaborators(collabs.data)
@@ -157,14 +152,35 @@ watch(() => currentTxtHook?.textContent.value, (newVal) => {
 })
 
 onMounted(() => {
+  setupAwareness()
   loadDocument()
 })
 
 onUnmounted(() => {
-  if (currentMdHook) currentMdHook.destroy()
-  if (currentTxtHook) currentTxtHook.destroy?.()
+  if (editor.value) {
+    editor.value.destroy()
+  }
+  if (currentMdHook?.destroy) currentMdHook.destroy()
+  if (currentTxtHook?.destroy) currentTxtHook.destroy()
+
+  // 销毁 Yjs 连接
+  provider.destroy()
+  ydoc.destroy()
 })
 
-// 原有业务函数保持不变
-async function refreshCollaborators() { /* ... */ }
+// 刷新协作者
+async function refreshCollaborators() {
+  if (!docId) return
+  try {
+    const res = await getCollaborators(docId)
+    if (res.code === 200) {
+      // 更新 Pinia Store 中的协作者数据，
+      // 这样弹窗里的列表会自动更新
+      documentStore.setCollaborators(res.data)
+      console.log('协作者列表已更新')
+    }
+  } catch (error) {
+    console.error('刷新协作者失败:', error)
+  }
+}
 </script>
