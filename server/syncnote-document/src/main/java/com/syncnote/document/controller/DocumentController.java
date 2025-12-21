@@ -1,6 +1,7 @@
 package com.syncnote.document.controller;
 
 import com.syncnote.document.dto.request.CreateDocumentRequestDTO;
+import com.syncnote.document.dto.request.GetDocumentDetailBase64State;
 import com.syncnote.document.dto.response.DocumentDetailDTO;
 import com.syncnote.document.dto.response.DocumentDTO;
 import com.syncnote.util.ApiResponse;
@@ -65,9 +66,9 @@ public class DocumentController {
     // 保存 Yjs 二进制状态
     @PostMapping("/{id}/state")
     public ApiResponse<Void> saveDocumentState(@PathVariable("id") Long id,
-                                               @RequestBody String base64State) {
+                                               @RequestBody GetDocumentDetailBase64State docContent) {
         // 接收 Base64 字符串
-        documentService.saveDocumentBinaryState(id, base64State);
+        documentService.saveDocumentBinaryState(id, docContent);
         return ApiResponse.succeed("保存Y.js的二进制状态成功");
     }
 

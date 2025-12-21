@@ -1,4 +1,5 @@
 import api from "../index";
+import * as Y from 'yjs';
 import type {
   Document,
   DocumentCollaborator,
@@ -8,6 +9,7 @@ import type {
   UpdateCollaboratorPermissionRequest,
   ApiResponse,
   DocumentDetailResponse,
+  GetDocumentDetailBase64State
 } from "./types";
 
 // 文档相关API - 统一使用 /api/documents 路径
@@ -25,15 +27,15 @@ export function getDocument(
 export function getDocumentState(
   id: string
 ): Promise<ApiResponse<String>> {
-  return api.get<ApiResponse<string>>(`/api/document/${id}/state`);
+  return api.get<ApiResponse<string>>(`/documents/${id}/state`);
 }
 
 // 更新 Yjs 二进制状态
 export function updateDocumentState(
   id: string,
-  base64State: string
+  data: GetDocumentDetailBase64State
 ): Promise<ApiResponse<String>>{
-  return api.post<ApiResponse<String>>(`/api/document/${id}/state`, base64State);
+  return api.post<ApiResponse<String>>(`/documents/${id}/state`, data);
 }
 
 export function createDocument(
@@ -53,15 +55,33 @@ export function deleteDocument(id: string): Promise<ApiResponse<null>> {
   return api.delete<ApiResponse<null>>(`/documents/${id}`);
 }
 
-export function uploadDocument(
+export async function uploadDocument(
   file: File,
   parentId?: string
 ): Promise<ApiResponse<Document>> {
+  const text = await file.text();
+
+  const ydoc = new Y.Doc();
+  const ytext = ydoc.getText('content'); // 必须和编辑器一致
+  ytext.insert(0, text);
+  const stateUpdate = Y.encodeStateAsUpdate(ydoc);
+  
+  // 3. 转 Base64 (安全处理大文件)
+  const base64State = btoa(
+    new Uint8Array(stateUpdate).reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      ''
+    )
+  );
+
   const formData = new FormData();
   formData.append("file", file);
   if (parentId !== undefined) {
     formData.append("parentId", parentId.toString());
   }
+
+  formData.append("base64State", base64State);
+
   return api.post<ApiResponse<Document>>("/documents/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
