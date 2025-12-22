@@ -6,7 +6,7 @@
     <!-- 消息列表 -->
     <div v-else class="divide-y divide-gray-50">
       <ChatMessageItem
-        v-for="(message, index) in messages"
+        v-for="(message) in messages"
         :key="`${message.id}-${message.content.length}-${message.isStreaming}`"
         :message="message"
       />
