@@ -9,10 +9,18 @@ export function chatStream(data: AIChatRequest, callbacks: AIStreamCallbacks) {
   // For now, implement a fallback using regular fetch with polling
   // In production, you'd want to use proper SSE or WebSocket
 
-  let fullContent = ''
+  console.log('[AI] Starting chat stream request:', data)
+  console.log('[AI] Callbacks provided:', !!callbacks)
+  console.log('[AI] onChunk callback:', typeof callbacks.onChunk)
 
   const pollForUpdates = async () => {
     try {
+      console.log('[AI] Sending request to:', '/api/ai/chat/stream')
+      console.log('[AI] Making fetch request with headers:', {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer [PRESENT]'
+      })
+
       const response = await fetch(`${api.defaults.baseURL}/ai/chat/stream`, {
         method: 'POST',
         headers: {
@@ -20,6 +28,13 @@ export function chatStream(data: AIChatRequest, callbacks: AIStreamCallbacks) {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(data)
+      })
+
+      console.log('[AI] Response received:', {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
       })
 
       if (!response.ok) {
@@ -38,6 +53,8 @@ export function chatStream(data: AIChatRequest, callbacks: AIStreamCallbacks) {
         const { done, value } = await reader.read()
         if (done) break
 
+        console.log('[AI] Read chunk:', { done, valueLength: value?.length })
+
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
 
@@ -45,28 +62,39 @@ export function chatStream(data: AIChatRequest, callbacks: AIStreamCallbacks) {
         buffer = lines.pop() || ''
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const chunk = JSON.parse(line.substring(6))
-              fullContent += chunk.content
+          console.log('[AI] Processing line:', line)
+          console.log('[AI] Line starts with data::', line.startsWith('data: '))
+          console.log('[AI] Line length:', line.length)
 
-              if (chunk.type === 'chunk') {
+          if (line.includes('data:')) {
+            try {
+              const dataIndex = line.indexOf('data:')
+              const jsonStr = line.substring(dataIndex + 5).trim() // Skip 'data:' and trim
+              const chunk = JSON.parse(jsonStr)
+
+              console.log('[AI] Processing chunk:', chunk)
+
+              // Handle SSE format from backend
+              if (chunk.delta !== undefined) {
+                // This is a message chunk - send individual delta
+                console.log('[AI] Delta received:', chunk.delta)
                 callbacks.onChunk({
                   type: 'chunk',
-                  content: fullContent,
+                  content: chunk.delta, // Send individual delta, not accumulated content
                   done: false
                 })
-              } else if (chunk.type === 'done') {
+              } else if (chunk.done !== undefined) {
+                // This is the done signal
+                console.log('[AI] Stream completed')
                 callbacks.onChunk({
                   type: 'done',
-                  content: fullContent,
+                  content: '',
                   done: true
                 })
                 callbacks.onComplete()
                 return
-              } else if (chunk.type === 'error') {
-                callbacks.onError(new Error(chunk.content))
-                return
+              } else {
+                console.warn('[AI] Unknown chunk type:', chunk)
               }
             } catch (e) {
               console.error('Failed to parse SSE data:', line, e)
