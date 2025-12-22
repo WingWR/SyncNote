@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full bg-gray-50/30">
     <!-- 消息列表 -->
-    <ChatMessageList :messages="currentChat?.messages || []" />
+    <ChatMessageList :messages="currentChat?.messages || []" :key="currentChat?.id || 'no-chat'" />
 
     <!-- 输入控件 -->
     <div class="flex-shrink-0 min-h-[120px]">

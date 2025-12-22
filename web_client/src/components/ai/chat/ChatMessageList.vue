@@ -6,10 +6,14 @@
     <!-- 消息列表 -->
     <div v-else class="divide-y divide-gray-50">
       <ChatMessageItem
-        v-for="message in messages"
-        :key="message.id"
+        v-for="(message, index) in messages"
+        :key="`${message.id}-${message.content.length}-${message.isStreaming}`"
         :message="message"
       />
+      <!-- 调试信息 -->
+      <div class="p-4 text-xs text-gray-400 border-t">
+        Total messages: {{ messages.length }}
+      </div>
     </div>
 
   </div>
