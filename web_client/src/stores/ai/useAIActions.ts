@@ -1,4 +1,3 @@
-import { nextTick } from 'vue'
 import type { Ref } from 'vue'
 import type { AIState, AIMessage, AIChat, AIModel } from './types'
 
