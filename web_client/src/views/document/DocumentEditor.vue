@@ -38,12 +38,17 @@
     </div>
 
     <!-- 编辑器区域 -->
+    <!-- 编辑器区域 -->
     <div class="flex-1 overflow-auto p-6">
+      <!-- TipTap编辑器（用于.md格式） -->
+      <div v-if="documentStore.currentDocument?.fileType === 'md'" class="prose max-w-none focus:outline-none">
+        <editor-content :editor="editor" />
       <!-- TipTap编辑器（用于.md格式） -->
       <div v-if="documentStore.currentDocument?.fileType === 'md'" class="prose max-w-none focus:outline-none">
         <editor-content :editor="editor" />
       </div>
 
+      <!-- 文本编辑器（用于.txt格式） -->
       <!-- 文本编辑器（用于.txt格式） -->
       <textarea v-else-if="documentStore.currentDocument?.fileType === 'txt'" v-model="textContent"
         @input="handleTextInput" class="w-full h-full border-none outline-none resize-none font-mono text-sm"
@@ -51,10 +56,14 @@
       </textarea>
 
       <!-- 其他格式提示 -->
+      <!-- 其他格式提示 -->
       <div v-else class="flex items-center justify-center h-full text-gray-400">
         <p>正在初始化编辑器...</p>
       </div>
     </div>
+
+    <!-- 分享链接对话框 -->
+    <ShareLink v-model:visible="showShareDialog" :document-id="documentStore.currentDocument?.id || ''" />
 
     <!-- 分享链接对话框 -->
     <ShareLink v-model:visible="showShareDialog" :document-id="documentStore.currentDocument?.id || ''" />
@@ -68,7 +77,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, shallowRef, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, shallowRef } from 'vue'
+import { nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { Users, Share2 } from 'lucide-vue-next'
 import { useDocumentStore } from '../../stores/document'
@@ -77,12 +87,17 @@ import { getDocument, getCollaborators } from '../../api/document'
 
 // 导入 TipTap 及相关扩展
 import { Editor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import Collaboration from '@tiptap/extension-collaboration'
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
+import { marked } from 'marked'
 
 // 导入 Yjs 核心逻辑
 import { useCollaborativeEditor } from './composables/useCollaborativeEditor'
-import { useYMarkdownEditor } from './composables/useYMarkdownEditor'
+import { useYjsAutoSave } from './composables/useYjsAutoSave'
 import { useYTextEditor } from './composables/useYTextEditor'
 import CollaboratorsManagementDialog from './components/CollaboratorsManagementDialog.vue'
+import ShareLink from '../../components/document/ShareLink.vue'
 import ShareLink from '../../components/document/ShareLink.vue'
 
 const route = useRoute()
@@ -95,12 +110,23 @@ const { ydoc, provider, loadHistoryAndConnect } = useCollaborativeEditor(docId.v
 
 // 2. 响应式变量
 const editor = shallowRef<Editor | undefined>(undefined)
+const editor = shallowRef<Editor | undefined>(undefined)
 const textContent = ref('')
 const handleTextInput = ref<any>(() => { })
 const onlineUsers = ref<any[]>([])
 
 const showShareDialog = ref(false)
 const showCollaboratorsDialog = ref(false)
+
+// 辅助函数：根据用户名生成颜色
+function stringToColor(str: string) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360
+  return `hsl(${hue}, 70%, 50%)`
+}
 
 // 3. 核心功能：初始化对应的编辑器逻辑
 let currentMdHook: any = null
@@ -125,15 +151,71 @@ const setupAwareness = () => {
 
 async function initEditor() {
   const type = documentStore.currentDocument?.fileType
+  const username = userStore.currentUser?.username || 'Anonymous'
 
   if (type === 'md') {
-    // 使用 Markdown 编辑器 composable
-    currentMdHook = useYMarkdownEditor(docId.value, ydoc, provider)
-    await currentMdHook.init()
-    editor.value = currentMdHook.editor.value
+    // 销毁旧的编辑器实例
+    if (editor.value) {
+      editor.value.destroy()
+    }
+
+    // 初始内容加载逻辑：如果 Yjs 文档为空且有 MinIO 内容 URL，则加载初始内容
+    // 注意：这里使用不同的字段名，避免和 Collaboration 扩展冲突
+    // Collaboration 扩展已经绑定了 'content' 字段，如果我们在同一个字段上操作 Text 类型可能会有冲突
+    // 但实际上 Yjs 允许这样做，报错是因为在 initEditor 之前 ydoc 可能已经被 useYTextEditor 访问过 'content' 字段
+    // 而 TipTap 的 Collaboration 扩展期望 'content' 是 XmlFragment 类型，但 useYTextEditor 把它当做 Text 类型
+    // 解决方法：区分不同类型文档使用的 Yjs 字段名，或者在初始化前确保类型一致
+
+    // 检查 ydoc 中 'content' 字段的类型
+    // 如果之前被初始化为 Text (由 useYTextEditor)，这里初始化为 XmlFragment 会报错
+    // 我们为 md 文档使用 'content-md' 字段，为 txt 文档使用 'content-txt' 字段，避免冲突
+
+    // 初始化 TipTap 编辑器
+    editor.value = new Editor({
+      extensions: [
+        StarterKit.configure({ history: false }), // 历史记录由 Yjs 接管
+        Collaboration.configure({
+          document: ydoc,
+          field: 'content-xml' // 修改字段名，避免与 txt 模式的 Text 类型冲突
+        }),
+        CollaborationCursor.configure({
+          provider,
+          user: {
+            name: username,
+            color: stringToColor(username)
+          }
+        })
+      ]
+    })
+
+    // 初始化自动保存
+    const { destroy } = useYjsAutoSave(ydoc, docId)
+    currentMdHook = { destroy }
+
+    // 初始内容加载逻辑
+    // 注意：Collaboration 扩展绑定的是 'content-xml' (XmlFragment)
+    // 但我们检查初始内容时，可以检查这个 XmlFragment 是否为空
+    const yXmlFragment = ydoc.getXmlFragment('content-xml')
+
+    if (yXmlFragment.toJSON() === '' && documentStore.currentDocument?.contentUrl) {
+      try {
+        const res = await fetch(documentStore.currentDocument.contentUrl)
+        if (res.ok) {
+          const text = await res.text()
+          // 使用 marked 解析 Markdown 为 HTML
+          const html = await marked(text)
+          // 注入内容，Collaboration 扩展会自动同步到 Yjs
+          editor.value.commands.setContent(html)
+        }
+      } catch (e) {
+        console.error('加载初始内容失败:', e)
+      }
+    }
+
   } else if (type === 'txt') {
     // txt 模式继续使用 content 字段 (Text 类型)
-    currentTxtHook = useYTextEditor(ydoc, docId.value)
+    // 或者为了彻底隔离，改用 content-txt
+    currentTxtHook = useYTextEditor(ydoc, docId)
     textContent.value = currentTxtHook.textContent.value
     handleTextInput.value = currentTxtHook.handleTextInput
   }
@@ -151,14 +233,8 @@ async function loadDocument() {
     ]);
 
     if (docResponse.code === 200) {
-      documentStore.setCurrentDocument(docResponse.data);
-      // 先把协作者存进去，保证 UI 响应
-      if (collabs.code === 200) {
-        documentStore.setCollaborators(collabs.data);
-      }
+      documentStore.setCurrentDocument(docResponse.data)
 
-      // 最后等待内容注入
-      await historyPromise;
       await nextTick()
       await initEditor() // 初始化对应的 Yjs 编辑器
     }
@@ -191,8 +267,16 @@ onUnmounted(() => {
 
 // 刷新协作者
 async function refreshCollaborators() {
-  const res = await getCollaborators(docId.value)
-  if (res.code === 200) documentStore.setCollaborators(res.data)
+  if (!docId) return
+  try {
+    const res = await getCollaborators(docId)
+    if (res.code === 200) {
+      documentStore.setCollaborators(res.data)
+      console.log('协作者列表已更新')
+    }
+  } catch (error) {
+    console.error('刷新协作者失败:', error)
+  }
 }
 </script>
 
