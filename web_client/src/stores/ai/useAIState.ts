@@ -1,4 +1,4 @@
-import { ref, markRaw } from 'vue'
+import { ref } from 'vue'
 import type { AIState, AIModel } from './types'
 
 const defaultModel: AIModel = {
