@@ -39,8 +39,9 @@
 
     <!-- 编辑器区域 -->
     <div class="flex-1 overflow-auto p-6">
-      <div v-if="documentStore.currentDocument?.fileType === 'md'" ref="mdEditorContainer"
-        class="prose max-w-none focus:outline-none">
+      <!-- TipTap编辑器（用于.md格式） -->
+      <div v-if="documentStore.currentDocument?.fileType === 'md'" class="prose max-w-none focus:outline-none">
+        <editor-content :editor="editor" />
       </div>
 
       <!-- 文本编辑器（用于.txt格式） -->
@@ -67,14 +68,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch} from 'vue'
-import { nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, shallowRef, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { Users, Share2 } from 'lucide-vue-next'
 import { useDocumentStore } from '../../stores/document'
 import { useUserStore } from '../../stores/user'
 import { getDocument, getCollaborators } from '../../api/document'
 
+// 导入 TipTap 及相关扩展
+import { Editor, EditorContent } from '@tiptap/vue-3'
 
 // 导入 Yjs 核心逻辑
 import { useCollaborativeEditor } from './composables/useCollaborativeEditor'
@@ -84,38 +86,22 @@ import CollaboratorsManagementDialog from './components/CollaboratorsManagementD
 import ShareLink from '../../components/document/ShareLink.vue'
 
 const route = useRoute()
+let docId = route.params.id as string
 const documentStore = useDocumentStore()
 const userStore = useUserStore()
 
-// 协作编辑器状态
-let ydoc: any = null
-let provider: any = null
-let docId = route.params.id as string
-
-// 初始化协作底座的函数
-async function initCollaborativeEditor(editorDocId: string) {
-  const result = useCollaborativeEditor(editorDocId)
-  ydoc = result.ydoc
-  provider = result.provider
-  docId = editorDocId
-
-  // 手动初始化协作连接
-  await result.loadHistoryAndConnect()
-  return result
-}
-
 // 1. 初始化协作底座 (Y.Doc 和 WebSocket)
-initCollaborativeEditor(docId)
+let { ydoc, provider } = useCollaborativeEditor(docId)
 
 // 2. 响应式变量
-const editor = ref<any>(null)
-const mdEditorContainer = ref<HTMLElement | null>(null)
+const editor = shallowRef<Editor | undefined>(undefined)
 const textContent = ref('')
 const handleTextInput = ref<any>(() => { })
 const onlineUsers = ref<any[]>([])
 
 const showShareDialog = ref(false)
 const showCollaboratorsDialog = ref(false)
+
 
 // 3. 核心功能：初始化对应的编辑器逻辑
 let currentMdHook: any = null
@@ -141,18 +127,13 @@ const setupAwareness = () => {
 async function initEditor() {
   const type = documentStore.currentDocument?.fileType
 
-  // 确保协作编辑器已初始化
-  if (!ydoc || !provider) {
-    throw new Error('协作编辑器未初始化，无法创建编辑器实例')
-  }
-
   if (type === 'md') {
-    if (mdEditorContainer.value){
-      currentMdHook = useYMarkdownEditor(mdEditorContainer.value, docId, ydoc, provider)
-      await currentMdHook.init()
-      editor.value = currentMdHook.editor.value
-    }
+    // 使用 Markdown 编辑器 composable
+    currentMdHook = useYMarkdownEditor(docId, ydoc, provider)
+    await currentMdHook.init()
+    editor.value = currentMdHook.editor.value
   } else if (type === 'txt') {
+    // txt 模式继续使用 content 字段 (Text 类型)
     currentTxtHook = useYTextEditor(ydoc, docId)
     textContent.value = currentTxtHook.textContent.value
     handleTextInput.value = currentTxtHook.handleTextInput
@@ -162,11 +143,6 @@ async function initEditor() {
 // 5. 加载文档及元数据
 async function loadDocument() {
   try {
-    // 确保协作编辑器已初始化
-    if (!ydoc || !provider) {
-      await initCollaborativeEditor(docId)
-    }
-
     const docResponse = await getDocument(docId)
     if (docResponse.code === 200) {
       documentStore.setCurrentDocument(docResponse.data)
@@ -178,13 +154,6 @@ async function loadDocument() {
       // 加载协作者列表 (用于管理对话框)
       const collabs = await getCollaborators(docId)
       if (collabs.code === 200) documentStore.setCollaborators(collabs.data)
-
-      // 调试：检查 DOM 结构
-      await nextTick()
-      console.log('🔍 DOM 检查:')
-      console.log('mdEditorContainer:', mdEditorContainer.value)
-      console.log('mdEditorContainer children:', mdEditorContainer.value?.children)
-      console.log('是否有 ProseMirror 类:', mdEditorContainer.value?.querySelector('.ProseMirror'))
     }
   } catch (error) {
     console.error('Document load error:', error)
@@ -196,57 +165,63 @@ watch(() => currentTxtHook?.textContent.value, (newVal) => {
   if (newVal !== undefined) textContent.value = newVal
 })
 
-// 清理编辑器和协作连接的函数
-async function cleanupEditor() {
-  // 清理编辑器实例
-  if (editor.value) {
-    editor.value.destroy()
-    editor.value = null
-  }
-  if (currentMdHook?.destroy) currentMdHook.destroy()
-  if (currentTxtHook?.destroy) currentTxtHook.destroy()
-
-  // 清理Yjs连接和awareness监听器
-  if (provider) {
-    // 清理awareness监听器
-    if (provider.awareness) {
-      provider.awareness.off('change')
-    }
-    provider.disconnect()
-    provider.destroy()
-  }
-  if (ydoc) {
-    ydoc.destroy()
-  }
-
-  // 重置状态
-  currentMdHook = null
-  currentTxtHook = null
-  onlineUsers.value = []
-  ydoc = null
-  provider = null
-}
-
 // 监听路由参数变化，当文档ID变化时重新加载文档
 watch(() => route.params.id, async (newId, oldId) => {
   if (newId && newId !== oldId) {
     console.log('文档ID变化，从', oldId, '到', newId)
 
     // 清理旧的编辑器实例和协作连接
-    await cleanupEditor()
+    if (currentMdHook?.destroy) currentMdHook.destroy()
+    if (currentTxtHook?.destroy) currentTxtHook.destroy()
+    if (editor.value) {
+      editor.value.destroy()
+      editor.value = undefined
+    }
 
-    // 更新文档ID并重新加载文档
+    // 清理旧的协作连接和awareness状态
+    if (provider) {
+      // 清理awareness状态，确保用户从旧文档中离开
+      provider.awareness.setLocalStateField('user', null)
+      provider.disconnect()
+      provider.destroy()
+    }
+    if (ydoc) {
+      ydoc.destroy()
+    }
+
+    // 重置状态
+    currentMdHook = null
+    currentTxtHook = null
+
+    // 更新文档ID
     docId = newId as string
+
+    // 重新初始化协作编辑器
+    const result = useCollaborativeEditor(docId)
+    ydoc = result.ydoc
+    provider = result.provider
+    await result.loadHistoryAndConnect()
+
+    // 重新加载文档
     await loadDocument()
   }
 })
 
-onMounted(async () => {
-  await loadDocument()
+onMounted(() => {
+  setupAwareness()
+  loadDocument()
 })
 
 onUnmounted(() => {
-  cleanupEditor()
+  if (editor.value) {
+    editor.value.destroy()
+  }
+  if (currentMdHook?.destroy) currentMdHook.destroy()
+  if (currentTxtHook?.destroy) currentTxtHook.destroy()
+
+  // 销毁 Yjs 连接
+  if (provider) provider.destroy()
+  if (ydoc) ydoc.destroy()
 })
 
 // 刷新协作者
@@ -264,228 +239,60 @@ async function refreshCollaborators() {
 }
 </script>
 
-<style scoped>
-/* 使用 :deep() 让样式穿透到 TipTap 生成的元素 */
-:deep(.ProseMirror) {
-  outline: none !important;
-  border: none !important;
+<style>
+/* TipTap编辑器样式 */
+.ProseMirror {
+  outline: none;
   min-height: 100%;
-  padding: 0;
 }
 
-:deep(.ProseMirror:focus) {
-  outline: none !important;
-  box-shadow: none !important;
+.ProseMirror p {
+  margin: 0.75em 0;
 }
 
-/* 段落样式 */
-:deep(.ProseMirror p) {
-  margin: 1em 0;
-  line-height: 1.6;
-  color: #374151;
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3 {
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
 }
 
-:deep(.ProseMirror p:first-child) {
-  margin-top: 0;
+.ProseMirror h1 {
+  font-size: 2em;
 }
 
-:deep(.ProseMirror p:last-child) {
-  margin-bottom: 0;
-}
-
-/* 标题样式 */
-:deep(.ProseMirror h1) {
-  font-size: 2.25em;
-  font-weight: 700;
-  margin: 1em 0 0.5em 0;
-  line-height: 1.2;
-  color: #111827;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 0.3em;
-}
-
-:deep(.ProseMirror h2) {
-  font-size: 1.875em;
-  font-weight: 700;
-  margin: 1em 0 0.5em 0;
-  line-height: 1.3;
-  color: #111827;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 0.3em;
-}
-
-:deep(.ProseMirror h3) {
+.ProseMirror h2 {
   font-size: 1.5em;
-  font-weight: 600;
-  margin: 1em 0 0.5em 0;
-  line-height: 1.4;
-  color: #111827;
 }
 
-:deep(.ProseMirror h4) {
+.ProseMirror h3 {
   font-size: 1.25em;
-  font-weight: 600;
-  margin: 1em 0 0.5em 0;
-  line-height: 1.4;
-  color: #374151;
 }
 
-:deep(.ProseMirror h5) {
-  font-size: 1.125em;
-  font-weight: 600;
-  margin: 1em 0 0.5em 0;
-  line-height: 1.4;
-  color: #374151;
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5em;
+  margin: 0.75em 0;
 }
 
-:deep(.ProseMirror h6) {
-  font-size: 1em;
-  font-weight: 600;
-  margin: 1em 0 0.5em 0;
-  line-height: 1.4;
-  color: #6b7280;
+.ProseMirror code {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-family: monospace;
 }
 
-/* 有序列表 */
-:deep(.ProseMirror ol) {
-  list-style-type: decimal;
-  padding-left: 2em;
-  margin: 1em 0;
-  color: #374151;
-}
-
-:deep(.ProseMirror ol ol) {
-  list-style-type: lower-alpha;
-}
-
-:deep(.ProseMirror ol ol ol) {
-  list-style-type: lower-roman;
-}
-
-/* 无序列表 */
-:deep(.ProseMirror ul) {
-  list-style-type: disc;
-  padding-left: 2em;
-  margin: 1em 0;
-  color: #374151;
-}
-
-:deep(.ProseMirror ul ul) {
-  list-style-type: circle;
-}
-
-:deep(.ProseMirror ul ul ul) {
-  list-style-type: square;
-}
-
-/* 列表项 */
-:deep(.ProseMirror li) {
-  margin: 0.25em 0;
-  line-height: 1.6;
-}
-
-:deep(.ProseMirror li > p) {
-  margin: 0;
-}
-
-/* 代码块 */
-:deep(.ProseMirror pre) {
-  background-color: #1f2937;
-  color: #f3f4f6;
+.ProseMirror pre {
+  background-color: #f3f4f6;
   padding: 1em;
   border-radius: 0.5em;
   overflow-x: auto;
-  margin: 1em 0;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.875em;
-  line-height: 1.5;
+  margin: 0.75em 0;
 }
 
-:deep(.ProseMirror pre code) {
-  background: none;
-  color: inherit;
+.ProseMirror pre code {
+  background-color: transparent;
   padding: 0;
-  font-size: inherit;
-}
-
-/* 行内代码 */
-:deep(.ProseMirror code) {
-  background-color: #f3f4f6;
-  color: #e11d48;
-  padding: 0.2em 0.4em;
-  border-radius: 0.25em;
-  font-size: 0.875em;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-/* 引用块 */
-:deep(.ProseMirror blockquote) {
-  border-left: 4px solid #3b82f6;
-  padding-left: 1em;
-  margin: 1em 0;
-  color: #6b7280;
-  font-style: italic;
-  background-color: #f9fafb;
-  padding: 0.5em 1em;
-  border-radius: 0 0.25em 0.25em 0;
-}
-
-/* 文本格式 */
-:deep(.ProseMirror strong) {
-  font-weight: 700;
-  color: #111827;
-}
-
-:deep(.ProseMirror em) {
-  font-style: italic;
-}
-
-:deep(.ProseMirror s) {
-  text-decoration: line-through;
-  color: #9ca3af;
-}
-
-/* 水平分割线 */
-:deep(.ProseMirror hr) {
-  border: none;
-  border-top: 2px solid #e5e7eb;
-  margin: 2em 0;
-}
-
-/* 链接 */
-:deep(.ProseMirror a) {
-  color: #3b82f6;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-:deep(.ProseMirror a:hover) {
-  color: #2563eb;
-}
-
-/* 协作光标样式 */
-:deep(.collaboration-cursor__caret) {
-  position: relative;
-  margin-left: -1px;
-  margin-right: -1px;
-  border-left: 2px solid;
-  word-break: normal;
-  pointer-events: none;
-}
-
-:deep(.collaboration-cursor__label) {
-  position: absolute;
-  top: -1.4em;
-  left: -1px;
-  font-size: 10px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 1;
-  user-select: none;
-  white-space: nowrap;
-  padding: 2px 4px;
-  border-radius: 3px;
-  pointer-events: none;
-  z-index: 10;
 }
 </style>
