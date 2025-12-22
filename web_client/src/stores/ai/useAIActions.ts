@@ -1,3 +1,4 @@
+import { nextTick } from 'vue'
 import type { Ref } from 'vue'
 import type { AIState, AIMessage, AIChat, AIModel } from './types'
 
@@ -23,31 +24,59 @@ export function useAIActions(state: Ref<AIState>) {
   }
 
   function addMessage(chatId: string, message: AIMessage) {
+    console.log('[STORE] Adding message:', { chatId, role: message.role, isStreaming: message.isStreaming })
     const chat = state.value.chats.find((c: AIChat) => c.id === chatId)
     if (chat) {
       chat.messages.push(message)
       chat.updatedAt = new Date()
+      console.log('[STORE] Message added, total messages:', chat.messages.length)
     }
   }
 
-  function updateStreamingMessage(chatId: string, content: string) {
+  function updateStreamingMessage(chatId: string, delta: string) {
+    console.log('[STORE] Updating streaming message:', { chatId, delta })
+    console.log('[STORE] Available chats:', state.value.chats.map(c => ({ id: c.id, messageCount: c.messages.length })))
     const chat = state.value.chats.find((c: AIChat) => c.id === chatId)
     if (chat && chat.messages.length > 0) {
-      const lastMessage = chat.messages[chat.messages.length - 1]
-      if (lastMessage && lastMessage.role === 'assistant' && lastMessage.isStreaming) {
-        lastMessage.content = content
-        chat.updatedAt = new Date()
+      const lastMessageIndex = chat.messages.length - 1
+      const lastMessage = chat.messages[lastMessageIndex]
+      if (lastMessage) {
+        console.log('[STORE] Last message before update:', { role: lastMessage.role, isStreaming: lastMessage.isStreaming, contentLength: lastMessage.content.length, id: lastMessage.id })
+        if (lastMessage.role === 'assistant' && lastMessage.isStreaming) {
+          // Create a new message object to ensure reactivity
+          const updatedMessage = {
+            ...lastMessage,
+            content: lastMessage.content + delta
+          }
+          // Direct assignment should work with Vue 3 reactivity
+          chat.messages[lastMessageIndex] = updatedMessage
+          chat.updatedAt = new Date()
+          console.log('[STORE] Message updated, new content length:', updatedMessage.content.length)
+        } else {
+          console.log('[STORE] Message not updated - conditions not met')
+        }
       }
+    } else {
+      console.log('[STORE] Chat or messages not found')
     }
   }
 
   function finalizeStreamingMessage(chatId: string) {
+    console.log('[STORE] Finalizing streaming message:', chatId)
     const chat = state.value.chats.find((c: AIChat) => c.id === chatId)
     if (chat && chat.messages.length > 0) {
-      const lastMessage = chat.messages[chat.messages.length - 1]
+      const lastMessageIndex = chat.messages.length - 1
+      const lastMessage = chat.messages[lastMessageIndex]
       if (lastMessage && lastMessage.role === 'assistant' && lastMessage.isStreaming) {
-        lastMessage.isStreaming = false
+        // Create a new message object to ensure reactivity
+        const finalizedMessage = {
+          ...lastMessage,
+          isStreaming: false
+        }
+        // Direct assignment should work with Vue 3 reactivity
+        chat.messages[lastMessageIndex] = finalizedMessage
         chat.updatedAt = new Date()
+        console.log('[STORE] Message finalized, isStreaming set to false')
       }
     }
   }

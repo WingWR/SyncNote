@@ -30,6 +30,11 @@
             <!-- 流式输出指示器 -->
             <span v-if="message.isStreaming" class="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>
           </div>
+          <!-- 调试信息 -->
+          <div v-if="message.role === 'assistant'" class="text-xs text-gray-400 mt-1">
+            Content length: {{ message.content.length }} | Streaming: {{ message.isStreaming }}
+            <br>Content preview: "{{ message.content.substring(0, 50) }}{{ message.content.length > 50 ? '...' : '' }}"
+          </div>
         </div>
       </div>
     </div>
