@@ -4,6 +4,10 @@ import { shallowRef } from 'vue'
 import StarterKit from '@tiptap/starter-kit'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
+// import Table from '@tiptap/extension-table'
+// import TableRow from '@tiptap/extension-table-row'
+// import TableHeader from '@tiptap/extension-table-header'
+// import TableCell from '@tiptap/extension-table-cell'
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { useUserStore } from '../../../stores/user'
@@ -30,11 +34,10 @@ export function useYMarkdownEditor(
       extensions: [
         StarterKit.configure({
           history: false,
-          // 禁用可能有问题的扩展
         }),
         Collaboration.configure({
           document: ydoc,
-          field: 'content' // 使用 Text 类型的字段
+          fragment: ydoc.get('prosemirror', Y.XmlFragment) // 使用 XmlFragment
         }),
         CollaborationCursor.configure({
           provider,

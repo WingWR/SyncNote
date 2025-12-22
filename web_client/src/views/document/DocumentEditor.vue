@@ -39,9 +39,8 @@
 
     <!-- 编辑器区域 -->
     <div class="flex-1 overflow-auto p-6">
-      <!-- TipTap编辑器（用于.md格式） -->
-      <div v-if="documentStore.currentDocument?.fileType === 'md'" class="prose max-w-none focus:outline-none">
-        <editor-content :editor="editor" />
+      <div v-if="documentStore.currentDocument?.fileType === 'md'" ref="mdEditorContainer"
+        class="prose max-w-none focus:outline-none">
       </div>
 
       <!-- 文本编辑器（用于.txt格式） -->
@@ -68,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, shallowRef } from 'vue'
+import { ref, onMounted, onUnmounted, watch} from 'vue'
 import { nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { Users, Share2 } from 'lucide-vue-next'
@@ -76,16 +75,10 @@ import { useDocumentStore } from '../../stores/document'
 import { useUserStore } from '../../stores/user'
 import { getDocument, getCollaborators } from '../../api/document'
 
-// 导入 TipTap 及相关扩展
-import { Editor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Collaboration from '@tiptap/extension-collaboration'
-import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
-import { marked } from 'marked'
 
 // 导入 Yjs 核心逻辑
 import { useCollaborativeEditor } from './composables/useCollaborativeEditor'
-import { useYjsAutoSave } from './composables/useYjsAutoSave'
+import { useYMarkdownEditor } from './composables/useYMarkdownEditor'
 import { useYTextEditor } from './composables/useYTextEditor'
 import CollaboratorsManagementDialog from './components/CollaboratorsManagementDialog.vue'
 import ShareLink from '../../components/document/ShareLink.vue'
@@ -115,23 +108,14 @@ async function initCollaborativeEditor(editorDocId: string) {
 initCollaborativeEditor(docId)
 
 // 2. 响应式变量
-const editor = shallowRef<Editor | undefined>(undefined)
+const editor = ref<any>(null)
+const mdEditorContainer = ref<HTMLElement | null>(null)
 const textContent = ref('')
 const handleTextInput = ref<any>(() => { })
 const onlineUsers = ref<any[]>([])
 
 const showShareDialog = ref(false)
 const showCollaboratorsDialog = ref(false)
-
-// 辅助函数：根据用户名生成颜色
-function stringToColor(str: string) {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  const hue = Math.abs(hash) % 360
-  return `hsl(${hue}, 70%, 50%)`
-}
 
 // 3. 核心功能：初始化对应的编辑器逻辑
 let currentMdHook: any = null
@@ -156,7 +140,6 @@ const setupAwareness = () => {
 
 async function initEditor() {
   const type = documentStore.currentDocument?.fileType
-  const username = userStore.currentUser?.username || 'Anonymous'
 
   // 确保协作编辑器已初始化
   if (!ydoc || !provider) {
@@ -164,67 +147,12 @@ async function initEditor() {
   }
 
   if (type === 'md') {
-    // 销毁旧的编辑器实例
-    if (editor.value) {
-      editor.value.destroy()
+    if (mdEditorContainer.value){
+      currentMdHook = useYMarkdownEditor(mdEditorContainer.value, docId, ydoc, provider)
+      await currentMdHook.init()
+      editor.value = currentMdHook.editor.value
     }
-
-    // 初始内容加载逻辑：如果 Yjs 文档为空且有 MinIO 内容 URL，则加载初始内容
-    // 注意：这里使用不同的字段名，避免和 Collaboration 扩展冲突
-    // Collaboration 扩展已经绑定了 'content' 字段，如果我们在同一个字段上操作 Text 类型可能会有冲突
-    // 但实际上 Yjs 允许这样做，报错是因为在 initEditor 之前 ydoc 可能已经被 useYTextEditor 访问过 'content' 字段
-    // 而 TipTap 的 Collaboration 扩展期望 'content' 是 XmlFragment 类型，但 useYTextEditor 把它当做 Text 类型
-    // 解决方法：区分不同类型文档使用的 Yjs 字段名，或者在初始化前确保类型一致
-
-    // 检查 ydoc 中 'content' 字段的类型
-    // 如果之前被初始化为 Text (由 useYTextEditor)，这里初始化为 XmlFragment 会报错
-    // 我们为 md 文档使用 'content-md' 字段，为 txt 文档使用 'content-txt' 字段，避免冲突
-
-    // 初始化 TipTap 编辑器
-    editor.value = new Editor({
-      extensions: [
-        StarterKit.configure({ history: false }), // 历史记录由 Yjs 接管
-        Collaboration.configure({
-          document: ydoc,
-          field: 'content-xml' // 修改字段名，避免与 txt 模式的 Text 类型冲突
-        }),
-        CollaborationCursor.configure({
-          provider,
-          user: {
-            name: username,
-            color: stringToColor(username)
-          }
-        })
-      ]
-    })
-
-    // 初始化自动保存
-    const { destroy } = useYjsAutoSave(ydoc, docId)
-    currentMdHook = { destroy }
-
-    // 初始内容加载逻辑
-    // 注意：Collaboration 扩展绑定的是 'content-xml' (XmlFragment)
-    // 但我们检查初始内容时，可以检查这个 XmlFragment 是否为空
-    const yXmlFragment = ydoc.getXmlFragment('content-xml')
-
-    if (yXmlFragment.toJSON() === '' && documentStore.currentDocument?.contentUrl) {
-      try {
-        const res = await fetch(documentStore.currentDocument.contentUrl)
-        if (res.ok) {
-          const text = await res.text()
-          // 使用 marked 解析 Markdown 为 HTML
-          const html = await marked(text)
-          // 注入内容，Collaboration 扩展会自动同步到 Yjs
-          editor.value.commands.setContent(html)
-        }
-      } catch (e) {
-        console.error('加载初始内容失败:', e)
-      }
-    }
-
   } else if (type === 'txt') {
-    // txt 模式继续使用 content 字段 (Text 类型)
-    // 或者为了彻底隔离，改用 content-txt
     currentTxtHook = useYTextEditor(ydoc, docId)
     textContent.value = currentTxtHook.textContent.value
     handleTextInput.value = currentTxtHook.handleTextInput
@@ -250,6 +178,13 @@ async function loadDocument() {
       // 加载协作者列表 (用于管理对话框)
       const collabs = await getCollaborators(docId)
       if (collabs.code === 200) documentStore.setCollaborators(collabs.data)
+
+      // 调试：检查 DOM 结构
+      await nextTick()
+      console.log('🔍 DOM 检查:')
+      console.log('mdEditorContainer:', mdEditorContainer.value)
+      console.log('mdEditorContainer children:', mdEditorContainer.value?.children)
+      console.log('是否有 ProseMirror 类:', mdEditorContainer.value?.querySelector('.ProseMirror'))
     }
   } catch (error) {
     console.error('Document load error:', error)
@@ -329,60 +264,228 @@ async function refreshCollaborators() {
 }
 </script>
 
-<style>
-/* TipTap编辑器样式 */
-.ProseMirror {
-  outline: none;
+<style scoped>
+/* 使用 :deep() 让样式穿透到 TipTap 生成的元素 */
+:deep(.ProseMirror) {
+  outline: none !important;
+  border: none !important;
   min-height: 100%;
+  padding: 0;
 }
 
-.ProseMirror p {
-  margin: 0.75em 0;
+:deep(.ProseMirror:focus) {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-.ProseMirror h1,
-.ProseMirror h2,
-.ProseMirror h3 {
-  font-weight: 600;
-  margin-top: 1em;
-  margin-bottom: 0.5em;
+/* 段落样式 */
+:deep(.ProseMirror p) {
+  margin: 1em 0;
+  line-height: 1.6;
+  color: #374151;
 }
 
-.ProseMirror h1 {
-  font-size: 2em;
+:deep(.ProseMirror p:first-child) {
+  margin-top: 0;
 }
 
-.ProseMirror h2 {
+:deep(.ProseMirror p:last-child) {
+  margin-bottom: 0;
+}
+
+/* 标题样式 */
+:deep(.ProseMirror h1) {
+  font-size: 2.25em;
+  font-weight: 700;
+  margin: 1em 0 0.5em 0;
+  line-height: 1.2;
+  color: #111827;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.3em;
+}
+
+:deep(.ProseMirror h2) {
+  font-size: 1.875em;
+  font-weight: 700;
+  margin: 1em 0 0.5em 0;
+  line-height: 1.3;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.3em;
+}
+
+:deep(.ProseMirror h3) {
   font-size: 1.5em;
+  font-weight: 600;
+  margin: 1em 0 0.5em 0;
+  line-height: 1.4;
+  color: #111827;
 }
 
-.ProseMirror h3 {
+:deep(.ProseMirror h4) {
   font-size: 1.25em;
+  font-weight: 600;
+  margin: 1em 0 0.5em 0;
+  line-height: 1.4;
+  color: #374151;
 }
 
-.ProseMirror ul,
-.ProseMirror ol {
-  padding-left: 1.5em;
-  margin: 0.75em 0;
+:deep(.ProseMirror h5) {
+  font-size: 1.125em;
+  font-weight: 600;
+  margin: 1em 0 0.5em 0;
+  line-height: 1.4;
+  color: #374151;
 }
 
-.ProseMirror code {
-  background-color: #f3f4f6;
-  padding: 0.2em 0.4em;
-  border-radius: 0.25em;
-  font-family: monospace;
+:deep(.ProseMirror h6) {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 1em 0 0.5em 0;
+  line-height: 1.4;
+  color: #6b7280;
 }
 
-.ProseMirror pre {
-  background-color: #f3f4f6;
+/* 有序列表 */
+:deep(.ProseMirror ol) {
+  list-style-type: decimal;
+  padding-left: 2em;
+  margin: 1em 0;
+  color: #374151;
+}
+
+:deep(.ProseMirror ol ol) {
+  list-style-type: lower-alpha;
+}
+
+:deep(.ProseMirror ol ol ol) {
+  list-style-type: lower-roman;
+}
+
+/* 无序列表 */
+:deep(.ProseMirror ul) {
+  list-style-type: disc;
+  padding-left: 2em;
+  margin: 1em 0;
+  color: #374151;
+}
+
+:deep(.ProseMirror ul ul) {
+  list-style-type: circle;
+}
+
+:deep(.ProseMirror ul ul ul) {
+  list-style-type: square;
+}
+
+/* 列表项 */
+:deep(.ProseMirror li) {
+  margin: 0.25em 0;
+  line-height: 1.6;
+}
+
+:deep(.ProseMirror li > p) {
+  margin: 0;
+}
+
+/* 代码块 */
+:deep(.ProseMirror pre) {
+  background-color: #1f2937;
+  color: #f3f4f6;
   padding: 1em;
   border-radius: 0.5em;
   overflow-x: auto;
-  margin: 0.75em 0;
+  margin: 1em 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875em;
+  line-height: 1.5;
 }
 
-.ProseMirror pre code {
-  background-color: transparent;
+:deep(.ProseMirror pre code) {
+  background: none;
+  color: inherit;
   padding: 0;
+  font-size: inherit;
+}
+
+/* 行内代码 */
+:deep(.ProseMirror code) {
+  background-color: #f3f4f6;
+  color: #e11d48;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.875em;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* 引用块 */
+:deep(.ProseMirror blockquote) {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1em;
+  margin: 1em 0;
+  color: #6b7280;
+  font-style: italic;
+  background-color: #f9fafb;
+  padding: 0.5em 1em;
+  border-radius: 0 0.25em 0.25em 0;
+}
+
+/* 文本格式 */
+:deep(.ProseMirror strong) {
+  font-weight: 700;
+  color: #111827;
+}
+
+:deep(.ProseMirror em) {
+  font-style: italic;
+}
+
+:deep(.ProseMirror s) {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+/* 水平分割线 */
+:deep(.ProseMirror hr) {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 2em 0;
+}
+
+/* 链接 */
+:deep(.ProseMirror a) {
+  color: #3b82f6;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+:deep(.ProseMirror a:hover) {
+  color: #2563eb;
+}
+
+/* 协作光标样式 */
+:deep(.collaboration-cursor__caret) {
+  position: relative;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 2px solid;
+  word-break: normal;
+  pointer-events: none;
+}
+
+:deep(.collaboration-cursor__label) {
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+  white-space: nowrap;
+  padding: 2px 4px;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 10;
 }
 </style>
