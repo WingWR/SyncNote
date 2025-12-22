@@ -80,7 +80,7 @@ import { Editor, EditorContent } from '@tiptap/vue-3'
 
 // 导入 Yjs 核心逻辑
 import { useCollaborativeEditor } from './composables/useCollaborativeEditor'
-import { useYMarkdownEditor } from './composables/useYMarkdownEditor'
+import { useYjsAutoSave } from './composables/useYjsAutoSave'
 import { useYTextEditor } from './composables/useYTextEditor'
 import CollaboratorsManagementDialog from './components/CollaboratorsManagementDialog.vue'
 import ShareLink from '../../components/document/ShareLink.vue'
@@ -101,6 +101,16 @@ const onlineUsers = ref<any[]>([])
 
 const showShareDialog = ref(false)
 const showCollaboratorsDialog = ref(false)
+
+// 辅助函数：根据用户名生成颜色
+function stringToColor(str: string) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360
+  return `hsl(${hue}, 70%, 50%)`
+}
 
 // 3. 核心功能：初始化对应的编辑器逻辑
 let currentMdHook: any = null
@@ -125,6 +135,7 @@ const setupAwareness = () => {
 
 async function initEditor() {
   const type = documentStore.currentDocument?.fileType
+  const username = userStore.currentUser?.username || 'Anonymous'
 
   if (type === 'md') {
     // 使用 Markdown 编辑器 composable
