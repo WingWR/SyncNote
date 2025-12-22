@@ -10,6 +10,7 @@ export interface Document {
   createdAt: string;
   updatedAt: string;
   permission: "READ" | "WRITE" | "OWNER"; // 匹配后端大写格式，必选
+  contentUrl?: string; // 可选字段，部分API（如详情）返回
 }
 
 export interface DocumentCollaborator {

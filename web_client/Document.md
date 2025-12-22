@@ -242,6 +242,8 @@
 
 ### 场景1：用户通过分享链接加入文档
 1. 文档拥有者分享文档链接（包含文档ID）
+   - 前端组件：`ShareLink.vue`
+   - 链接格式：`/home/document/join/{documentId}`
 2. 其他用户点击链接后，前端调用 `POST /api/documents/{documentId}/join`
 3. 用户自动成为文档的协作者，获得READ权限
 4. 用户可以查看文档内容
