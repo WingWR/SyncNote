@@ -129,22 +129,11 @@ export function useCollaborativeEditor(docId: string) {
           // 将 Text 数据迁移到 XmlFragment
           const textContent = oldText.toString()
           if (textContent.trim()) {
-            // 将文本按行分割，每行作为一个段落
-            const lines = textContent.split('\n').filter(line => line.trim())
-            const elements = []
-
-            for (const line of lines) {
-              if (line.trim()) {
-                const paragraph = new Y.XmlElement('paragraph')
-                paragraph.insert(0, [new Y.XmlText(line)])
-                elements.push(paragraph)
-              }
-            }
-
-            if (elements.length > 0) {
-              fragment.insert(0, elements)
-              console.log(`[Yjs] 成功迁移 ${elements.length} 段文本到 XmlFragment`)
-            }
+            // 创建单个段落包含所有文本
+            const paragraph = new Y.XmlElement('paragraph')
+            paragraph.insert(0, [new Y.XmlText(textContent)])
+            fragment.insert(0, [paragraph])
+            console.log('[Yjs] 成功迁移文本到 XmlFragment')
           }
 
           // 清理旧的 Text 数据

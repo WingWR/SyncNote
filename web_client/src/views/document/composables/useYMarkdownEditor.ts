@@ -8,19 +8,79 @@ import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 // import TableRow from '@tiptap/extension-table-row'
 // import TableHeader from '@tiptap/extension-table-header'
 // import TableCell from '@tiptap/extension-table-cell'
+import { Plugin } from '@tiptap/pm/state'
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { useUserStore } from '../../../stores/user'
+import { useDocumentStore } from '../../../stores/document'
 import { useYjsAutoSave } from './useYjsAutoSave'
+import { marked } from 'marked'
+import { Extension } from '@tiptap/core'
+
+// Markdown粘贴扩展
+const MarkdownPaste = Extension.create({
+  name: 'markdownPaste',
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          handlePaste: (view, event) => {
+            const pastedText = event.clipboardData?.getData('text/plain')
+            if (!pastedText) return false
+
+            // 检查是否包含Markdown语法
+            const hasMarkdown = /#{1,6}\s+|^\s*[-*+]\s+|^\s*\d+\.\s+|^\s*>\s+|\*\*.*?\*\*|\*.*?\*|`.+?`|^\s*```/.test(pastedText)
+
+            if (hasMarkdown) {
+              console.log('[MarkdownPaste] 检测到Markdown语法，使用marked转换')
+
+              event.preventDefault()
+
+              try {
+                // 使用marked将Markdown转换为HTML
+                const html = marked.parse(pastedText, {
+                  breaks: true,
+                  gfm: true
+                })
+
+                // 获取当前编辑器实例并插入HTML内容
+                const editor = (view as any).editor
+                if (editor) {
+                  editor.commands.insertContent(html)
+                  return true
+                }
+              } catch (error) {
+                console.warn('[MarkdownPaste] 转换失败:', error)
+              }
+
+              // 如果转换失败或无法获取editor，回退到插入原文
+              const { state, dispatch } = view
+              const { tr } = state
+              tr.insertText(pastedText)
+              dispatch(tr)
+              return true
+            }
+
+            return false // 让其他处理器处理普通粘贴
+          }
+        }
+      })
+    ]
+  }
+})
+
+// 移除复杂的粘贴处理，使用更简单的方法
+// 依赖TipTap的原生功能和键盘快捷键
 
 export function useYMarkdownEditor(
-    element: HTMLElement,
     docId: string,
     ydoc: Y.Doc,
     provider: WebsocketProvider
 ) {
   const userStore = useUserStore()
-  // TipTap 的标准类型（与现在的一致）
+  const documentStore = useDocumentStore()
+  // TipTap 的标准类型
   const editor: ShallowRef<Editor | undefined> = shallowRef()
 
   // 使用统一保存逻辑
@@ -29,15 +89,19 @@ export function useYMarkdownEditor(
   async function init() {
     const username = userStore.currentUser?.username || 'Anonymous'
 
+    // 销毁旧的编辑器实例
+    if (editor.value) {
+      editor.value.destroy()
+    }
+
+    // 初始化 TipTap 编辑器
     editor.value = new Editor({
-      element,
       extensions: [
-        StarterKit.configure({
-          history: false,
-        }),
+        StarterKit.configure({ history: false }), // 历史记录由 Yjs 接管
+        MarkdownPaste,
         Collaboration.configure({
           document: ydoc,
-          fragment: ydoc.get('prosemirror', Y.XmlFragment) // 使用 XmlFragment
+          field: 'content-xml' // 修改字段名，避免与 txt 模式的 Text 类型冲突
         }),
         CollaborationCursor.configure({
           provider,
@@ -70,11 +134,27 @@ export function useYMarkdownEditor(
       ]
     })
 
+    // 初始内容加载逻辑
+    const yXmlFragment = ydoc.getXmlFragment('content-xml')
+    if (yXmlFragment.toJSON() === '' && documentStore.currentDocument?.contentUrl) {
+      try {
+        const res = await fetch(documentStore.currentDocument.contentUrl)
+        if (res.ok) {
+          const text = await res.text()
+          // 使用 marked 解析 Markdown 为 HTML
+          const html = await marked(text)
+          // 注入内容，Collaboration 扩展会自动同步到 Yjs
+          editor.value.commands.setContent(html)
+        }
+      } catch (e) {
+        console.error('加载初始内容失败:', e)
+      }
+    }
+
     // 确保编辑器有一个有效的初始状态
     setTimeout(() => {
       if (editor.value) {
         try {
-          // 确保光标位置有效
           const { state } = editor.value
           const { tr } = state
           // 如果文档为空，确保有一个段落
@@ -94,7 +174,10 @@ export function useYMarkdownEditor(
 
   function destroy() {
     destroyAutoSave()
-    editor.value?.destroy()
+    if (editor.value) {
+      editor.value.destroy()
+      editor.value = undefined
+    }
   }
 
   // 根据用户名随机分配颜色，减少相同
