@@ -48,17 +48,18 @@ export function useCollaborativeEditor(docId: string) {
           }, 'local-initial-load')
 
           console.log('[Yjs] 历史数据注入成功')
+
+          // 验证文档结构
+          validateDocumentStructure()
         } catch (updateError) {
           const errorMessage = updateError instanceof Error ? updateError.message : String(updateError)
           console.warn('[Yjs] 历史数据加载失败，从空状态开始:', errorMessage)
 
-          // 确保空状态的文档有一个基本的 Text 字段
-          ydoc.transact(() => {
-            const ytext = ydoc.getText('content')
-            if (ytext.length === 0) {
-              ytext.insert(0, '')
-            }
-          }, 'ensure-empty-content')
+          // 初始化空的 XmlFragment（不是 Text）
+          initializeEmptyDocument()
+
+          // 记录迁移信息
+          recordMigrationInfo(docId, errorMessage, String(res.data))
 
           // 记录迁移信息到本地存储，用于后续分析和恢复
           try {
@@ -88,7 +89,9 @@ export function useCollaborativeEditor(docId: string) {
       // 加载失败的处理逻辑
       console.error('[Yjs] 核心初始化失败:', e)
 
-      // 即使初始化失败，也要尝试连接
+      // 初始化空文档
+      initializeEmptyDocument()
+
       try {
         provider.connect()
         isLoaded.value = true
@@ -96,6 +99,83 @@ export function useCollaborativeEditor(docId: string) {
         console.error('[Yjs] 连接失败:', connectError)
         provider.disconnect()
       }
+    }
+  }
+
+  // 初始化空文档结构
+  function initializeEmptyDocument() {
+    ydoc.transact(() => {
+      // 为 Markdown 编辑器初始化 XmlFragment
+      ydoc.get('prosemirror', Y.XmlFragment)
+
+      // 如果需要，也可以为文本编辑器保留 Text 字段
+      ydoc.getText('content')
+
+      console.log('[Yjs] 已初始化空文档结构')
+    }, 'initialize-empty')
+  }
+
+  // 验证文档结构是否正确
+  function validateDocumentStructure() {
+    ydoc.transact(() => {
+      // 检查是否有旧的 Text 字段需要迁移
+      const oldText = ydoc.getText('content')
+      const fragment = ydoc.get('prosemirror', Y.XmlFragment)
+
+      // 如果有旧的文本数据但 fragment 是空的，自动迁移
+      if (oldText.length > 0 && fragment.length === 0) {
+        console.log('[Yjs] 检测到旧格式数据，开始自动迁移...')
+        try {
+          // 将 Text 数据迁移到 XmlFragment
+          const textContent = oldText.toString()
+          if (textContent.trim()) {
+            // 将文本按行分割，每行作为一个段落
+            const lines = textContent.split('\n').filter(line => line.trim())
+            const elements = []
+
+            for (const line of lines) {
+              if (line.trim()) {
+                const paragraph = new Y.XmlElement('paragraph')
+                paragraph.insert(0, [new Y.XmlText(line)])
+                elements.push(paragraph)
+              }
+            }
+
+            if (elements.length > 0) {
+              fragment.insert(0, elements)
+              console.log(`[Yjs] 成功迁移 ${elements.length} 段文本到 XmlFragment`)
+            }
+          }
+
+          // 清理旧的 Text 数据
+          oldText.delete(0, oldText.length)
+          console.log('[Yjs] 已清理旧的 Text 数据')
+        } catch (migrationError) {
+          console.error('[Yjs] 数据迁移失败:', migrationError)
+        }
+      } else if (oldText.length > 0) {
+        console.log('[Yjs] 文档已经包含新格式数据，跳过迁移')
+      } else {
+        console.log('[Yjs] 文档为空或已经是新格式')
+      }
+    }, 'validate-structure')
+  }
+
+  // 记录迁移信息
+  function recordMigrationInfo(docId: string, errorMessage: string, data: string) {
+    try {
+      const migrationRecord = {
+        docId,
+        error: errorMessage,
+        timestamp: Date.now(),
+        dataSize: data.length,
+        dataPreview: data.substring(0, 50) + '...',
+        userAgent: navigator.userAgent
+      }
+      localStorage.setItem(`doc_migration_${docId}`, JSON.stringify(migrationRecord))
+      console.log('[Yjs] 迁移记录已保存，可用于后续数据恢复')
+    } catch (storageError) {
+      console.warn('[Yjs] 无法保存迁移记录:', storageError)
     }
   }
 
