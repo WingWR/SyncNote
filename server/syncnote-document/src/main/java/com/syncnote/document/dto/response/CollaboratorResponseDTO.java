@@ -16,12 +16,19 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CollaboratorResponseDTO {
+
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
+
     @JsonSerialize(using = ToStringSerializer.class)
     private Long documentId;
+
     @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
+
+    private String username;
+
     private String permission;  // "READ" 或 "WRITE" (大写)
+
     private Instant joinedAt;   // 对应数据库中的createdAt字段
 }
