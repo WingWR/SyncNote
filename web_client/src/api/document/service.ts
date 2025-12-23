@@ -9,7 +9,8 @@ import type {
   UpdateCollaboratorPermissionRequest,
   ApiResponse,
   DocumentDetailResponse,
-  GetDocumentDetailBase64State
+  GetDocumentDetailBase64State,
+  GetCollaboratorInfoResponse
 } from "./types";
 
 // 文档相关API - 统一使用 /api/documents 路径
@@ -109,8 +110,8 @@ export function restoreDocument(id: string): Promise<ApiResponse<null>> {
 // 协作者相关API - 匹配后端路径 /api/documents (复数)
 export function getCollaborators(
   documentId: string
-): Promise<ApiResponse<DocumentCollaborator[]>> {
-  return api.get<ApiResponse<DocumentCollaborator[]>>(
+): Promise<ApiResponse<GetCollaboratorInfoResponse[]>> {
+  return api.get<ApiResponse<GetCollaboratorInfoResponse[]>>(
     `/documents/${documentId}/collaborators`
   );
 }
