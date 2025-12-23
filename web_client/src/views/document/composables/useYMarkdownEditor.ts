@@ -74,9 +74,9 @@ const MarkdownPaste = Extension.create({
 // 依赖TipTap的原生功能和键盘快捷键
 
 export function useYMarkdownEditor(
-    docId: string,
-    ydoc: Y.Doc,
-    provider: WebsocketProvider
+  docId: string,
+  ydoc: Y.Doc,
+  provider: WebsocketProvider
 ) {
   const userStore = useUserStore()
   const documentStore = useDocumentStore()
@@ -187,8 +187,9 @@ export function useYMarkdownEditor(
       hash = str.charCodeAt(i) + ((hash << 5) - hash)
     }
 
-    const hue = Math.abs(hash) % 360
-    return `hsl(${hue}, 70%, 50%)`
+    // 将 Hash 转换为 6 位十六进制
+    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+    return "#" + "00000".substring(0, 6 - c.length) + c;
   }
 
   return {
