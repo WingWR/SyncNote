@@ -25,9 +25,15 @@ export interface UpdateDocumentRequest {
   parentId?: string;
 }
 
+// 获取协作者的信息
+export interface GetCollaboratorInfoResponse extends DocumentCollaborator {
+  username: string;
+}
+
 // 添加协作者请求 - 匹配后端API
 export interface AddCollaboratorRequest {
   userId: string;
+  username: string;
   permission: "READ" | "WRITE"| "OWNER"; // 后端使用大写
 }
 
