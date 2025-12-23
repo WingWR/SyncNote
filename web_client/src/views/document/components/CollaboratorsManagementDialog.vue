@@ -25,7 +25,6 @@
         <div v-else-if="collaborators.length === 0" class="flex flex-col items-center justify-center py-12">
           <UsersIcon :size="48" class="text-gray-300 mb-3" />
           <p class="text-sm text-gray-500 mb-1">还没有协作者</p>
-          <p class="text-xs text-gray-400">点击下方按钮添加协作者</p>
         </div>
 
         <!-- 协作者卡片列表 -->
@@ -97,26 +96,13 @@
           </div>
         </div>
       </div>
-
-      <!-- 底部操作 -->
-      <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between">
-        <button @click="$emit('add-collaborator')"
-          class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          <PlusIcon :size="16" class="inline mr-1" />
-          添加协作者
-        </button>
-        <button @click="$emit('update:visible', false)"
-          class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-          关闭
-        </button>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { XIcon, EyeIcon, EditIcon, RefreshCwIcon, Trash2Icon, PlusIcon, UsersIcon, CrownIcon } from 'lucide-vue-next'
+import { XIcon, EyeIcon, EditIcon, RefreshCwIcon, Trash2Icon, UsersIcon, CrownIcon } from 'lucide-vue-next'
 import { getCollaborators, updateCollaboratorPermission, removeCollaborator } from '../../../api/document'
 import type { CollaboratorSimpleInfo } from '../../../api/document/types'
 import { useUserStore } from '../../../stores/user'
