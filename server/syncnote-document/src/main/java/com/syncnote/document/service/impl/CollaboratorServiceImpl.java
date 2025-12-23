@@ -170,7 +170,7 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
 
         // 设置用户名并处理为空
         if (userInfoList != null && !userInfoList.isEmpty()) {
-            dto.setUsername(userInfoList.get(0).getUsername());
+            dto.setUsername(userInfoList.getFirst().getUsername());
         } else {
             dto.setUsername("未知用户"); // 兜底处理
         }
