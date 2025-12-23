@@ -86,12 +86,12 @@ import CollaboratorsManagementDialog from './components/CollaboratorsManagementD
 import ShareLink from '../../components/document/ShareLink.vue'
 
 const route = useRoute()
-let docId = route.params.id as string
+const docId = ref(route.params.id as string)
 const documentStore = useDocumentStore()
 const userStore = useUserStore()
 
 // 1. 初始化协作底座 (Y.Doc 和 WebSocket)
-let { ydoc, provider } = useCollaborativeEditor(docId)
+const { ydoc, provider, loadHistoryAndConnect } = useCollaborativeEditor(docId.value)
 
 // 2. 响应式变量
 const editor = shallowRef<Editor | undefined>(undefined)
@@ -102,7 +102,6 @@ const onlineUsers = ref<any[]>([])
 const showShareDialog = ref(false)
 const showCollaboratorsDialog = ref(false)
 
-
 // 3. 核心功能：初始化对应的编辑器逻辑
 let currentMdHook: any = null
 let currentTxtHook: any = null
@@ -112,7 +111,7 @@ const setupAwareness = () => {
 
   provider.awareness.setLocalStateField('user', {
     name: userStore.currentUser?.username || '匿名用户',
-    color: '#' + Math.floor(Math.random() * 16777215).toString(16)
+    color: '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')
   })
 
   provider.awareness.on('change', () => {
@@ -129,12 +128,12 @@ async function initEditor() {
 
   if (type === 'md') {
     // 使用 Markdown 编辑器 composable
-    currentMdHook = useYMarkdownEditor(docId, ydoc, provider)
+    currentMdHook = useYMarkdownEditor(docId.value, ydoc, provider)
     await currentMdHook.init()
     editor.value = currentMdHook.editor.value
   } else if (type === 'txt') {
     // txt 模式继续使用 content 字段 (Text 类型)
-    currentTxtHook = useYTextEditor(ydoc, docId)
+    currentTxtHook = useYTextEditor(ydoc, docId.value)
     textContent.value = currentTxtHook.textContent.value
     handleTextInput.value = currentTxtHook.handleTextInput
   }
@@ -142,18 +141,26 @@ async function initEditor() {
 
 // 5. 加载文档及元数据
 async function loadDocument() {
-  try {
-    const docResponse = await getDocument(docId)
-    if (docResponse.code === 200) {
-      documentStore.setCurrentDocument(docResponse.data)
+  const historyPromise = loadHistoryAndConnect();
+  setupAwareness();
 
+  try {
+    const [docResponse, collabs] = await Promise.all([
+      getDocument(docId.value),
+      getCollaborators(docId.value)
+    ]);
+
+    if (docResponse.code === 200) {
+      documentStore.setCurrentDocument(docResponse.data);
+      // 先把协作者存进去，保证 UI 响应
+      if (collabs.code === 200) {
+        documentStore.setCollaborators(collabs.data);
+      }
+
+      // 最后等待内容注入
+      await historyPromise;
       await nextTick()
       await initEditor() // 初始化对应的 Yjs 编辑器
-      setupAwareness()   // 初始化在线人数统计
-
-      // 加载协作者列表 (用于管理对话框)
-      const collabs = await getCollaborators(docId)
-      if (collabs.code === 200) documentStore.setCollaborators(collabs.data)
     }
   } catch (error) {
     console.error('Document load error:', error)
@@ -166,76 +173,26 @@ watch(() => currentTxtHook?.textContent.value, (newVal) => {
 })
 
 // 监听路由参数变化，当文档ID变化时重新加载文档
-watch(() => route.params.id, async (newId, oldId) => {
-  if (newId && newId !== oldId) {
-    console.log('文档ID变化，从', oldId, '到', newId)
-
-    // 清理旧的编辑器实例和协作连接
-    if (currentMdHook?.destroy) currentMdHook.destroy()
-    if (currentTxtHook?.destroy) currentTxtHook.destroy()
-    if (editor.value) {
-      editor.value.destroy()
-      editor.value = undefined
-    }
-
-    // 清理旧的协作连接和awareness状态
-    if (provider) {
-      // 清理awareness状态，确保用户从旧文档中离开
-      provider.awareness.setLocalStateField('user', null)
-      provider.disconnect()
-      provider.destroy()
-    }
-    if (ydoc) {
-      ydoc.destroy()
-    }
-
-    // 重置状态
-    currentMdHook = null
-    currentTxtHook = null
-
-    // 更新文档ID
-    docId = newId as string
-
-    // 重新初始化协作编辑器
-    const result = useCollaborativeEditor(docId)
-    ydoc = result.ydoc
-    provider = result.provider
-    await result.loadHistoryAndConnect()
-
-    // 重新加载文档
-    await loadDocument()
+watch(() => route.params.id, async (newId) => {
+  if (newId && newId !== docId.value) {
+    // 路由变化时，最简单有效的方法是刷新页面或手动重置整个协作实例
+    // 这里简单处理：刷新页面以彻底清理旧的 Yjs 实例
+    window.location.reload();
   }
 })
 
 onMounted(() => {
-  setupAwareness()
   loadDocument()
 })
 
 onUnmounted(() => {
-  if (editor.value) {
-    editor.value.destroy()
-  }
-  if (currentMdHook?.destroy) currentMdHook.destroy()
-  if (currentTxtHook?.destroy) currentTxtHook.destroy()
-
-  // 销毁 Yjs 连接
-  if (provider) provider.destroy()
-  if (ydoc) ydoc.destroy()
+  if (editor.value) editor.value.destroy()
 })
 
 // 刷新协作者
 async function refreshCollaborators() {
-  if (!docId) return
-  try {
-    const res = await getCollaborators(docId)
-    if (res.code === 200) {
-      documentStore.setCollaborators(res.data)
-      console.log('协作者列表已更新')
-    }
-  } catch (error) {
-    console.error('刷新协作者失败:', error)
-  }
+  const res = await getCollaborators(docId.value)
+  if (res.code === 200) documentStore.setCollaborators(res.data)
 }
 </script>
 
