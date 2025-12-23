@@ -10,7 +10,7 @@ import type {
   ApiResponse,
   DocumentDetailResponse,
   GetDocumentDetailBase64State,
-  GetCollaboratorInfoResponse
+  CollaboratorSimpleInfo
 } from "./types";
 
 // 文档相关API - 统一使用 /api/documents 路径
@@ -110,8 +110,8 @@ export function restoreDocument(id: string): Promise<ApiResponse<null>> {
 // 协作者相关API - 匹配后端路径 /api/documents (复数)
 export function getCollaborators(
   documentId: string
-): Promise<ApiResponse<GetCollaboratorInfoResponse[]>> {
-  return api.get<ApiResponse<GetCollaboratorInfoResponse[]>>(
+): Promise<ApiResponse<CollaboratorSimpleInfo[]>> {
+  return api.get<ApiResponse<CollaboratorSimpleInfo[]>>(
     `/documents/${documentId}/collaborators`
   );
 }
@@ -119,8 +119,8 @@ export function getCollaborators(
 export function addCollaborator(
   documentId: string,
   data: AddCollaboratorRequest
-): Promise<ApiResponse<DocumentCollaborator>> {
-  return api.post<ApiResponse<DocumentCollaborator>>(
+): Promise<ApiResponse<CollaboratorSimpleInfo>> {
+  return api.post<ApiResponse<CollaboratorSimpleInfo>>(
     `/documents/${documentId}/collaborators`,
     data
   );

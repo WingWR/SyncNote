@@ -118,8 +118,7 @@
 import { ref, watch, computed } from 'vue'
 import { XIcon, EyeIcon, EditIcon, RefreshCwIcon, Trash2Icon, PlusIcon, UsersIcon, CrownIcon } from 'lucide-vue-next'
 import { getCollaborators, updateCollaboratorPermission, removeCollaborator } from '../../../api/document'
-// import type { GetCollaboratorInfoResponse } from '../../../stores/document/types'
-import type { GetCollaboratorInfoResponse } from '../../../api/document/types'
+import type { CollaboratorSimpleInfo } from '../../../api/document/types'
 import { useUserStore } from '../../../stores/user'
 
 interface Props {
@@ -140,7 +139,7 @@ const userStore = useUserStore()
 const currentUserId = computed(() => userStore.currentUser?.id)
 
 const loading = ref(false)
-const collaborators = ref<GetCollaboratorInfoResponse[]>([])
+const collaborators = ref<CollaboratorSimpleInfo[]>([])
 
 // 是否有管理权限（拥有者或WRITE权限）
 const canManage = computed(() => {
@@ -169,7 +168,7 @@ async function loadCollaborators() {
 }
 
 // 切换权限
-async function handleTogglePermission(collaborator: GetCollaboratorInfoResponse) {
+async function handleTogglePermission(collaborator: CollaboratorSimpleInfo) {
   if (!props.documentId) return
 
   const newPermission = collaborator.permission === 'WRITE' ? 'READ' : 'WRITE'
@@ -202,7 +201,7 @@ async function handleTogglePermission(collaborator: GetCollaboratorInfoResponse)
 }
 
 // 移除协作者
-async function handleRemove(collaborator: GetCollaboratorInfoResponse) {
+async function handleRemove(collaborator: CollaboratorSimpleInfo) {
   if (!props.documentId) return
   if (!confirm(`确定要移除用户 ${collaborator.userId} 吗？`)) return
 
