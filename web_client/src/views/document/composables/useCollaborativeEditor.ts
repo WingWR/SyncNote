@@ -8,99 +8,78 @@ export function useCollaborativeEditor(docId: string) {
   const isLoaded = ref(false) // 标记历史数据是否加载完成
 
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = window.location.host;
-  const wsUrl = `${protocol}//${host}/ws/document`;
+  const host = window.location.hostname;
+
+  const wsUrl = `${protocol}//${host}:8080/ws/document`;
   // 1. 初始化 Provider，但先不连接 (手动控制 connect)
   const provider = new WebsocketProvider(wsUrl, docId.toString(), ydoc, { connect: false })
 
-  const loadHistoryAndConnect = async () => {
+  // 用来上锁，控制重复加载
+  let loadingPromise: Promise<void> | null = null;
+
+  // 提供销毁链接
+  const cleanup = () => {
     try {
-      // 确保 Yjs 文档有正确的初始结构
-      // 对于 Markdown 编辑器，我们使用 XmlFragment
-      // 对于其他编辑器类型，可以使用不同的字段名或逻辑
-
-      const res = await getDocumentState(docId.toString())
-
-      if (res.code !== 200) {
-        console.warn('[Yjs] 获取文档状态失败:', res.message)
-        // 即使获取失败，也要连接到协作服务器，从空状态开始
-        provider.connect()
-        isLoaded.value = true
-        return
-      }
-
-      // 如果有数据，应用状态
-      if (res.data) {
-        try {
-          const base64Data: string = String(res.data)
-
-          // 首先尝试解码Base64数据
-          let binary: Uint8Array
-          try {
-            binary = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))
-          } catch (decodeError) {
-            throw new Error(`Base64解码失败: ${decodeError instanceof Error ? decodeError.message : String(decodeError)}`)
-          }
-
-          // 然后尝试应用到Yjs文档
-          ydoc.transact(() => {
-            Y.applyUpdate(ydoc, binary)
-          }, 'local-initial-load')
-
-          console.log('[Yjs] 历史数据注入成功')
-
-          // 验证文档结构
-          validateDocumentStructure()
-        } catch (updateError) {
-          const errorMessage = updateError instanceof Error ? updateError.message : String(updateError)
-          console.warn('[Yjs] 历史数据加载失败，从空状态开始:', errorMessage)
-
-          // 初始化空的 XmlFragment（不是 Text）
-          initializeEmptyDocument()
-
-          // 记录迁移信息
-          recordMigrationInfo(docId, errorMessage, String(res.data))
-
-          // 记录迁移信息到本地存储，用于后续分析和恢复
-          try {
-            const migrationRecord = {
-              docId,
-              error: errorMessage,
-              timestamp: Date.now(),
-              dataSize: res.data.length,
-              dataPreview: res.data.substring(0, 50) + '...', // 只保存前50个字符用于分析
-              userAgent: navigator.userAgent
-            }
-            localStorage.setItem(`doc_migration_${docId}`, JSON.stringify(migrationRecord))
-            console.log('[Yjs] 迁移记录已保存，可用于后续数据恢复')
-          } catch (storageError) {
-            console.warn('[Yjs] 无法保存迁移记录:', storageError)
-          }
-
-          // 从空状态开始，编辑器会正常工作
-          console.log('[Yjs] 文档将从空状态开始，用户可重新编辑内容')
-        }
-      }
-
-      provider.connect()
-      isLoaded.value = true
-
+      provider.awareness.destroy()
+      provider.disconnect()
+      provider.destroy()
+      ydoc.destroy()
     } catch (e) {
-      // 加载失败的处理逻辑
-      console.error('[Yjs] 核心初始化失败:', e)
-
-      // 初始化空文档
-      initializeEmptyDocument()
-
-      try {
-        provider.connect()
-        isLoaded.value = true
-      } catch (connectError) {
-        console.error('[Yjs] 连接失败:', connectError)
-        provider.disconnect()
-      }
+      console.error('[Yjs] 清理资源时出错:', e)
     }
   }
+
+  onUnmounted(() => {
+    cleanup()
+    window.removeEventListener('beforeunload', cleanup)
+  })
+  // 添加用户直接关闭或者刷新
+  window.addEventListener('beforeunload', cleanup)
+
+  const loadHistoryAndConnect = async () => {
+    // 避免重复加载
+    if (isLoaded.value) return;
+
+    if (loadingPromise) {
+      console.log('[Yjs] 发现正在加载中的任务，跳过重复初始化');
+      return loadingPromise;
+    }
+
+    loadingPromise = (async () => {
+      // 直接ws连接，人数秒响应
+      provider.connect();
+      const dbPromise = getDocumentState(docId.toString());
+
+      try {
+        const res = await dbPromise;
+
+        if (res.code === 200 && res.data) {
+          const binary = Uint8Array.from(atob(String(res.data)), c => c.charCodeAt(0));
+
+          Y.applyUpdate(ydoc, binary);
+
+          setTimeout(() => {
+            console.log('[Yjs] 开始执行后台延迟迁移校验...');
+            validateDocumentStructure();
+            isLoaded.value = true;
+          }, 300);
+
+        } else {
+          initializeEmptyDocument();
+          isLoaded.value = true;
+        }
+        isLoaded.value = true;
+      }
+      catch (e: any) {
+        console.error('[Yjs] 异步加载失败，强制断开连接:');
+        provider.disconnect();
+        isLoaded.value = false;
+        loadingPromise = null;
+        throw e;
+      }
+    })();
+    return loadingPromise;
+  };
 
   // 初始化空文档结构
   function initializeEmptyDocument() {
@@ -149,32 +128,6 @@ export function useCollaborativeEditor(docId: string) {
       }
     }, 'validate-structure')
   }
-
-  // 记录迁移信息
-  function recordMigrationInfo(docId: string, errorMessage: string, data: string) {
-    try {
-      const migrationRecord = {
-        docId,
-        error: errorMessage,
-        timestamp: Date.now(),
-        dataSize: data.length,
-        dataPreview: data.substring(0, 50) + '...',
-        userAgent: navigator.userAgent
-      }
-      localStorage.setItem(`doc_migration_${docId}`, JSON.stringify(migrationRecord))
-      console.log('[Yjs] 迁移记录已保存，可用于后续数据恢复')
-    } catch (storageError) {
-      console.warn('[Yjs] 无法保存迁移记录:', storageError)
-    }
-  }
-
-  // 不自动执行初始化，由调用者控制
-
-  onUnmounted(() => {
-    provider.disconnect() // 先断开连接
-    provider.destroy()    // 再销毁
-    ydoc.destroy()
-  })
 
   return { ydoc, provider, isLoaded, loadHistoryAndConnect }
 }
