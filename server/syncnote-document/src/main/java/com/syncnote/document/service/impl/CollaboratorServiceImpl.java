@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.syncnote.document.dto.request.AddCollaboratorRequestDTO;
 import com.syncnote.document.dto.request.UpdateCollaboratorPermissionRequestDTO;
 import com.syncnote.document.dto.response.CollaboratorResponseDTO;
+import com.syncnote.document.dto.response.UserSimpleInfo;
 import com.syncnote.document.mapper.DocumentCollaboratorMapper;
 import com.syncnote.document.mapper.DocumentMapper;
 import com.syncnote.document.model.DocStatus;
@@ -14,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.syncnote.document.service.ICollaboratorService;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -65,12 +66,28 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
                         .eq("document_id", documentId)
         );
 
+        if (collaborators.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Set<Long> userIds = collaborators.stream()
+                .map(DocumentCollaborator::getUserId)
+                .collect(Collectors.toSet());
+
+        List<UserSimpleInfo> userInfos = documentCollaboratorMapper.selectUserSimpleByIds(userIds);
+
+        Map<Long, String> userIdToNameMap = userInfos.stream()
+                .collect(Collectors.toMap(UserSimpleInfo::getId, UserSimpleInfo::getUsername));
+
         // 转换为DTO
         return collaborators.stream().map(collaborator -> {
             CollaboratorResponseDTO dto = new CollaboratorResponseDTO();
             dto.setId(collaborator.getId());
             dto.setDocumentId(collaborator.getDocumentId());
             dto.setUserId(collaborator.getUserId());
+
+            dto.setUsername(userIdToNameMap.getOrDefault(collaborator.getUserId(), "未知用户"));
+
             dto.setPermission(collaborator.getPermission().toValue());
             dto.setJoinedAt(collaborator.getCreatedAt());
             return dto;
@@ -137,13 +154,26 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
         collaborator.setPermission(permission);
         documentCollaboratorMapper.insert(collaborator);
 
+        // 查询用户名
+        List<UserSimpleInfo> userInfoList = documentCollaboratorMapper.selectUserSimpleByIds(
+                Collections.singletonList(request.getUserId())
+        );
+
         // 转换为DTO
         CollaboratorResponseDTO dto = new CollaboratorResponseDTO();
         dto.setId(collaborator.getId());
         dto.setDocumentId(collaborator.getDocumentId());
         dto.setUserId(collaborator.getUserId());
+
         dto.setPermission(collaborator.getPermission().toValue());
         dto.setJoinedAt(collaborator.getCreatedAt());
+
+        // 设置用户名并处理为空
+        if (userInfoList != null && !userInfoList.isEmpty()) {
+            dto.setUsername(userInfoList.get(0).getUsername());
+        } else {
+            dto.setUsername("未知用户"); // 兜底处理
+        }
 
         return dto;
     }
