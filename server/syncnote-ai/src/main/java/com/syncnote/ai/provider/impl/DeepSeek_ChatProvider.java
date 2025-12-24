@@ -24,7 +24,7 @@ public class DeepSeek_ChatProvider implements IAIProvider {
     private final boolean enabled;
 
     public DeepSeek_ChatProvider(AIProperties aiProperties) {
-        AIProperties.ProviderConfig config = aiProperties.getProviders().get("deepseek");
+        AIProperties.ProviderConfig config = aiProperties.getProviders().get("deepseek_chat");
         if (config == null) {
             this.modelId = "deepseek-chat";
             this.enabled = false;
