@@ -59,7 +59,6 @@ export function useCollaborativeEditor(docId: string) {
           Y.applyUpdate(ydoc, binary);
 
           setTimeout(() => {
-            console.log('[Yjs] 开始执行后台延迟迁移校验...');
             validateDocumentStructure();
             isLoaded.value = true;
           }, 300);
@@ -90,7 +89,6 @@ export function useCollaborativeEditor(docId: string) {
       // 如果需要，也可以为文本编辑器保留 Text 字段
       ydoc.getText('content')
 
-      console.log('[Yjs] 已初始化空文档结构')
     }, 'initialize-empty')
   }
 
@@ -103,7 +101,6 @@ export function useCollaborativeEditor(docId: string) {
 
       // 如果有旧的文本数据但 fragment 是空的，自动迁移
       if (oldText.length > 0 && fragment.length === 0) {
-        console.log('[Yjs] 检测到旧格式数据，开始自动迁移...')
         try {
           // 将 Text 数据迁移到 XmlFragment
           const textContent = oldText.toString()
@@ -112,19 +109,13 @@ export function useCollaborativeEditor(docId: string) {
             const paragraph = new Y.XmlElement('paragraph')
             paragraph.insert(0, [new Y.XmlText(textContent)])
             fragment.insert(0, [paragraph])
-            console.log('[Yjs] 成功迁移文本到 XmlFragment')
           }
 
           // 清理旧的 Text 数据
           oldText.delete(0, oldText.length)
-          console.log('[Yjs] 已清理旧的 Text 数据')
         } catch (migrationError) {
           console.error('[Yjs] 数据迁移失败:', migrationError)
         }
-      } else if (oldText.length > 0) {
-        console.log('[Yjs] 文档已经包含新格式数据，跳过迁移')
-      } else {
-        console.log('[Yjs] 文档为空或已经是新格式')
       }
     }, 'validate-structure')
   }
