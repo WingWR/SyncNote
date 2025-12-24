@@ -29,6 +29,19 @@
       </div>
     </div>
 
+    <!-- AI临时编辑控件 -->
+    <AITemporaryEditControls
+      v-if="aiStore.temporaryEdit && aiStore.temporaryEdit.documentId === docId"
+      :temp-edit="aiStore.temporaryEdit"
+      :model-name="aiStore.currentModel?.name"
+      :insertion-point="getInsertionPointForControls()"
+      :editor-element="getEditorElement()"
+      :tiptap-editor="editor"
+      :text-editor-hook="getTextEditorHook()"
+      @accepted="handleAITempEditAccepted"
+      @rejected="handleAITempEditRejected"
+    />
+
     <!-- 分享链接对话框 -->
     <ShareLink v-model:visible="showShareDialog" :document-id="documentStore.currentDocument?.id || ''" />
 
@@ -60,6 +73,7 @@ import { useAIChat } from '../../composables/ai/useAIChat'
 import CollaboratorsManagementDialog from './components/CollaboratorsManagementDialog.vue'
 import ShareLink from '../../components/document/ShareLink.vue'
 import EditorToolbar from './components/EditorToolbar.vue'
+import AITemporaryEditControls from './components/AITemporaryEditControls.vue'
 
 const route = useRoute()
 const docId = ref(route.params.id as string)
@@ -185,38 +199,29 @@ watch(() => currentTxtHook?.textContent.value, (newVal) => {
 
 // 手动保存文档
 async function manualSave() {
-  console.log('[ManualSave] Starting manual save...')
 
   // 确保文本内容同步到Yjs
   if (documentStore.currentDocument?.fileType === 'txt' && currentTxtHook) {
-    console.log('[ManualSave] Ensuring text content is synced to Yjs')
     currentTxtHook.handleTextInput()
   }
 
   // 根据文档类型调用对应的保存方法
   const type = documentStore.currentDocument?.fileType
   if (type === 'md' && currentMdHook) {
-    console.log('[ManualSave] Saving markdown document')
     try {
       const success = await currentMdHook.manualSave()
-      console.log('[ManualSave] Markdown manual save result:', success)
       return success
     } catch (error) {
-      console.error('[ManualSave] Markdown manual save failed:', error)
       return false
     }
   } else if (type === 'txt' && currentTxtHook) {
-    console.log('[ManualSave] Saving text document')
     try {
       const success = await currentTxtHook.manualSave()
-      console.log('[ManualSave] Text manual save result:', success)
       return success
     } catch (error) {
-      console.error('[ManualSave] Text manual save failed:', error)
       return false
     }
   } else {
-    console.warn('[ManualSave] No suitable hook found for manual save', { type, hasMdHook: !!currentMdHook, hasTxtHook: !!currentTxtHook })
     return false
   }
 }
@@ -226,10 +231,6 @@ function handleKeyDown(event: KeyboardEvent) {
   // Ctrl+S 或 Cmd+S 保存文档
   if ((event.ctrlKey || event.metaKey) && event.key === 's') {
     event.preventDefault() // 阻止浏览器默认的保存行为
-
-    console.log('[ManualSave] Ctrl+S pressed, attempting to save')
-    console.log('[ManualSave] ydoc available:', !!ydoc)
-    console.log('[ManualSave] docId:', docId.value)
 
     // 直接使用Yjs进行保存，解耦合保存逻辑
     manualSave().then((success) => {
@@ -415,7 +416,7 @@ function handleAIPolish() {
   const { sendMessage } = useAIChat()
   aiStore.setMode('polish')
 
-  sendMessage(`请润色以下内容，并在润色文本的最后加上换行：${selectedText}`, {
+  sendMessage(`请修改一下以下内容，让这段内容更加通顺有文学感，只输出修改之后的内容，不要生成说明等等信息，并在润色文本的最后加上换行：${selectedText}`, {
     documentId: docId.value,
     context: selectedText,
     getInsertionPoint: () => ({ index: originalSelection.start }), // 润色时在选中开始位置插入
@@ -428,6 +429,87 @@ function handleAIPolish() {
 async function refreshCollaborators() {
   const res = await getCollaborators(docId.value)
   if (res.code === 200) documentStore.setCollaborators(res.data)
+}
+
+// 获取编辑器元素（用于AI控件定位）
+function getEditorElement(): HTMLElement | null {
+  const type = documentStore.currentDocument?.fileType
+
+  if (type === 'md' && editor.value) {
+    return editor.value.view.dom as HTMLElement
+  } else if (type === 'txt' && textareaRef.value) {
+    return textareaRef.value
+  }
+
+  return null
+}
+
+// 获取插入点坐标（用于AI控件定位）
+function getInsertionPointForControls(): { x: number; y: number } | null {
+  const tempEdit = aiStore.temporaryEdit
+  if (!tempEdit?.insertionPoint) return null
+
+  const editorElement = getEditorElement()
+  if (!editorElement) return null
+
+  const type = documentStore.currentDocument?.fileType
+
+  if (type === 'md' && editor.value && 'from' in tempEdit.insertionPoint) {
+    // TipTap编辑器：获取光标坐标
+    try {
+      const coords = editor.value.view.coordsAtPos(tempEdit.insertionPoint.from!)
+      const wrapper = editorElement.parentElement
+      if (wrapper) {
+        const wrapperRect = wrapper.getBoundingClientRect()
+        return {
+          x: coords.left - wrapperRect.left,
+          y: coords.bottom - wrapperRect.top + 4
+        }
+      }
+    } catch (e) {
+      console.error('[DocumentEditor] Failed to get insertion point coords:', e)
+    }
+  } else if (type === 'txt' && textareaRef.value) {
+    // textarea：使用简单的定位
+    const wrapper = editorElement.parentElement
+    if (wrapper) {
+      const editorRect = editorElement.getBoundingClientRect()
+      const wrapperRect = wrapper.getBoundingClientRect()
+      return {
+        x: editorRect.left - wrapperRect.left,
+        y: editorRect.bottom - wrapperRect.top + 8
+      }
+    }
+  }
+
+  return null
+}
+
+// 获取文本编辑器钩子（用于textarea模式）
+function getTextEditorHook() {
+  const type = documentStore.currentDocument?.fileType
+
+  if (type === 'txt' && currentTxtHook) {
+    return {
+      textContent: currentTxtHook.textContent,
+      insertAtCursor: currentTxtHook.insertAtCursor,
+      replaceSelection: currentTxtHook.replaceSelection,
+      renderTemporaryEdit: currentTxtHook.renderTemporaryEdit
+    }
+  }
+
+  return undefined
+}
+
+// 处理AI临时编辑接受
+function handleAITempEditAccepted() {
+  console.log('[DocumentEditor] Handling AI temp edit accepted')
+  aiStore.acceptTemporaryEdit()
+}
+
+// 处理AI临时编辑拒绝
+function handleAITempEditRejected() {
+  aiStore.rejectTemporaryEdit()
 }
 </script>
 
