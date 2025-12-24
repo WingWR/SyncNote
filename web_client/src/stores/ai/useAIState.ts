@@ -15,7 +15,12 @@ export function useAIState() {
     availableModels: [], // 初始化为空数组，后端API不可用时显示"模型未接入"
     isLoading: false,
     isStreaming: false,
-    mode: 'chat'
+    mode: 'chat',
+    currentDocumentId: null,
+    pendingEdit: null,
+    temporaryEdit: null,
+    editorCallbacks: null,
+    errors: []
   })
 
   return {

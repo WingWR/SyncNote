@@ -9,6 +9,8 @@
         v-for="(message) in messages"
         :key="`${message.id}-${message.content.length}-${message.isStreaming}`"
         :message="message"
+        @accept-edit="$emit('accept-edit', message.id)"
+        @reject-edit="$emit('reject-edit', message.id)"
       />
       <!-- 调试信息 -->
       <div class="p-4 text-xs text-gray-400 border-t">
@@ -26,5 +28,10 @@ import ChatEmptyState from './ChatEmptyState.vue'
 
 defineProps<{
   messages: AIMessage[]
+}>()
+
+defineEmits<{
+  (e: 'accept-edit', messageId: string): void
+  (e: 'reject-edit', messageId: string): void
 }>()
 </script>

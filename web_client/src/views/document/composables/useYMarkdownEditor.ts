@@ -15,7 +15,7 @@ import { useUserStore } from '../../../stores/user'
 import { useDocumentStore } from '../../../stores/document'
 import { useYjsAutoSave } from './useYjsAutoSave'
 import { marked } from 'marked'
-import { Extension } from '@tiptap/core'
+import { Extension, Mark } from '@tiptap/core'
 
 // Markdown粘贴扩展
 const MarkdownPaste = Extension.create({
@@ -70,6 +70,31 @@ const MarkdownPaste = Extension.create({
   }
 })
 
+// AI临时文本标记
+const AITemporaryText = Mark.create({
+  name: 'aiTemporaryText',
+
+  addOptions() {
+    return {
+      HTMLAttributes: {
+        class: 'ai-temporary-text',
+      },
+    }
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'span.ai-temporary-text',
+      },
+    ]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['span', { ...this.options.HTMLAttributes, ...HTMLAttributes }, 0]
+  },
+})
+
 // 移除复杂的粘贴处理，使用更简单的方法
 // 依赖TipTap的原生功能和键盘快捷键
 
@@ -84,7 +109,7 @@ export function useYMarkdownEditor(
   const editor: ShallowRef<Editor | undefined> = shallowRef()
 
   // 使用统一保存逻辑
-  const { destroy: destroyAutoSave } = useYjsAutoSave(ydoc, docId)
+  const { destroy: destroyAutoSave, manualSave } = useYjsAutoSave(ydoc, docId)
 
   async function init() {
     const username = userStore.currentUser?.username || 'Anonymous'
@@ -99,6 +124,7 @@ export function useYMarkdownEditor(
       extensions: [
         StarterKit.configure({ history: false }), // 历史记录由 Yjs 接管
         MarkdownPaste,
+        AITemporaryText,
         Collaboration.configure({
           document: ydoc,
           field: 'content-xml' // 修改字段名，避免与 txt 模式的 Text 类型冲突
@@ -192,9 +218,30 @@ export function useYMarkdownEditor(
     return "#" + "00000".substring(0, 6 - c.length) + c;
   }
 
+  /**
+   * 获取当前光标位置
+   */
+  function getCursorPosition() {
+    if (!editor.value) return null
+    const { from, to } = editor.value.state.selection
+    return { from, to }
+  }
+
+  /**
+   * 聚焦编辑器
+   */
+  function focus() {
+    if (editor.value) {
+      editor.value.commands.focus()
+    }
+  }
+
   return {
     editor,
     init,
-    destroy
+    destroy,
+    manualSave,
+    getCursorPosition,
+    focus
   }
 }

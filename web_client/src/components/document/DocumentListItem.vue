@@ -97,3 +97,4 @@ defineEmits<{
 
 const { formatFileSize, formatDate, getFileIcon, getFileTypeColor } = useDocumentUtils()
 </script>
+
