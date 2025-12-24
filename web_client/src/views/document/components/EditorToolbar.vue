@@ -68,7 +68,6 @@
 import { computed } from 'vue'
 import { Users, Bot, Share2 } from 'lucide-vue-next'
 import { useDocumentStore } from '../../../stores/document'
-import { useAIStore } from '../../../stores/ai'
 
 interface OnlineUser {
   name: string
@@ -82,7 +81,6 @@ const props = defineProps<{
 const emit = defineEmits(['showAddDialog', 'showShareDialog', 'ai-continue', 'ai-polish'])
 
 const documentStore = useDocumentStore()
-const aiStore = useAIStore()
 
 const currentDocument = computed(() => documentStore.currentDocument)
 const onlineUsers = computed(() => props.onlineUsers || [])
@@ -97,9 +95,4 @@ function handleAIPolish() {
   emit('ai-polish')
 }
 
-// 获取当前选中的文本（将由父组件提供）
-function getSelectedText(): string {
-  // 这个函数现在在父组件中实现
-  return ''
-}
 </script>

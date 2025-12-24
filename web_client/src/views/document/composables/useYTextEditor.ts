@@ -33,18 +33,12 @@ export function useYTextEditor(_ydoc: Y.Doc, docId: string) {
   // 输入时同步到 Y.Text
   function handleTextInput() {
     const current = ytext.toString()
-    console.log('[YTextEditor] handleTextInput called:', {
-      textContent: textContent.value,
-      yjsCurrent: current,
-      needsSync: textContent.value !== current
-    })
 
     if (textContent.value !== current) {
       _ydoc.transact(() => {
         ytext.delete(0, current.length)
         ytext.insert(0, textContent.value)
       })
-      console.log('[YTextEditor] Synced textContent to Yjs:', textContent.value)
     }
   }
 
@@ -226,7 +220,6 @@ export function useYTextEditor(_ydoc: Y.Doc, docId: string) {
 
     // 只在流式输出完成后显示按钮
     if (!tempEdit.isStreaming) {
-      console.log('[AIEditBridge] AI streaming completed, creating buttons')
 
       // 锁定编辑，防止用户在决策期间修改文档
       lockEdit()
@@ -356,9 +349,6 @@ export function useYTextEditor(_ydoc: Y.Doc, docId: string) {
       tempEditContainer.appendChild(acceptBtn)
       tempEditContainer.appendChild(rejectBtn)
 
-      // 定位按钮：简化定位逻辑，放在textarea右下角确保可见
-      console.log('[AIEditBridge] Rendering buttons for temporary edit')
-
       // 简化定位：将按钮放在textarea的右下角
       const textareaRect = textarea.getBoundingClientRect()
 
@@ -372,7 +362,6 @@ export function useYTextEditor(_ydoc: Y.Doc, docId: string) {
       tempEditContainer.style.zIndex = '1000'
 
       editorWrapper.appendChild(tempEditContainer)
-      console.log('[AIEditBridge] Buttons rendered and added to DOM')
     }
   }
 

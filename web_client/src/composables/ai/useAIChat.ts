@@ -37,7 +37,7 @@ export function useAIChat() {
   const currentMode = computed(() => aiStore.mode)
   const currentDocumentId = computed(() => aiStore.currentDocumentId)
 
-  function sendMessage(content: string, options?: SendMessageOptions) {
+  function sendMessage(content: string, options: SendMessageOptions = {}) {
 
     // 如果没有当前对话，创建一个新对话
     let chatId = aiStore.currentChatId
@@ -137,15 +137,16 @@ export function useAIChat() {
     // 发起真正的流式API请求
     initiateStreamingResponse(chatId, content, {
       documentId: effectiveDocumentId,
-      context: options?.context
+      context: options.context
     })
   }
 
   function initiateStreamingResponse(
     chatId: string,
     userContent: string,
-    { documentId, context }: SendMessageOptions
+    options: SendMessageOptions = {}
   ) {
+    const { documentId, context } = options
     chatStream({
       message: userContent,
       modelId: aiStore.currentModel?.id || '',
