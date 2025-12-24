@@ -19,7 +19,7 @@ public class ContinueWriteController {
             @PathVariable("documentId") Long documentId,
             @RequestBody ContinueWriteRequest req) {
         return ApiResponse.succeed(
-                continueWriteService.continueWrite(documentId, req.getContext(), req.getModelId()),
+                continueWriteService.continueWrite(documentId, req.getContext(), req.getModelId(), req.getDocumentText()),
                 "success");
     }
 }
