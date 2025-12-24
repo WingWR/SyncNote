@@ -188,9 +188,14 @@ export function useAIActions(state: Ref<AIState>) {
    * 接受临时编辑：将临时文本转为正式文本
    */
   function acceptTemporaryEdit() {
-    if (!state.value.temporaryEdit) return
+    if (!state.value.temporaryEdit) {
+      console.log('[acceptTemporaryEdit] No temporary edit to accept')
+      return
+    }
 
     const tempEdit = state.value.temporaryEdit
+    console.log('[acceptTemporaryEdit] Accepting temporary edit:', tempEdit)
+
     const chat = state.value.chats.find((c: AIChat) => c.id === state.value.currentChatId)
     if (chat) {
       const msg = chat.messages.find((m: AIMessage) => m.id === tempEdit.messageId)
@@ -201,7 +206,39 @@ export function useAIActions(state: Ref<AIState>) {
       }
     }
 
-    // 清空临时编辑，实际应用由 useAIEditBridge 处理
+    // 创建 pendingEdit 操作来应用实际的编辑
+    const content = tempEdit.content.trim()
+    console.log('[acceptTemporaryEdit] Content to insert:', content)
+
+    if (content) {
+      if (tempEdit.mode === 'polish' && tempEdit.originalSelection) {
+        // 润色模式：替换操作
+        console.log('[acceptTemporaryEdit] Creating replace operation for polish mode')
+        state.value.pendingEdit = {
+          type: 'replace',
+          documentId: tempEdit.documentId,
+          targetText: '', // 不需要，因为我们有原始选区信息
+          replacementText: content
+        }
+        // 扩展pendingEdit以包含原始选区信息（用于替换操作）
+        ;(state.value.pendingEdit as any).originalSelection = tempEdit.originalSelection
+      } else {
+        // 续写模式：追加操作
+        console.log('[acceptTemporaryEdit] Creating append operation for continue mode')
+        state.value.pendingEdit = {
+          type: 'append',
+          documentId: tempEdit.documentId,
+          replacementText: content
+        }
+        // 扩展pendingEdit以包含插入点信息
+        ;(state.value.pendingEdit as any).insertionPoint = tempEdit.insertionPoint
+      }
+      console.log('[acceptTemporaryEdit] Created pendingEdit:', state.value.pendingEdit)
+    } else {
+      console.log('[acceptTemporaryEdit] No content to insert')
+    }
+
+    // 清空临时编辑
     state.value.temporaryEdit = null
   }
 
