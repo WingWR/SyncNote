@@ -96,8 +96,8 @@ export function useAIChat() {
     // 如果是 continue/polish 模式，创建临时编辑状态并自动聚焦编辑器
     if ((aiStore.mode === 'continue' || aiStore.mode === 'polish') && effectiveDocumentId) {
       // 优先使用传入的回调，否则从 store 获取
-      const getInsertionPoint = options?.getInsertionPoint ?? aiStore.editorCallbacks?.getInsertionPoint
-      const focusEditor = options?.focusEditor ?? aiStore.editorCallbacks?.focusEditor
+      const getInsertionPoint = options?.getInsertionPoint
+      const focusEditor = options?.focusEditor
 
       // 获取插入位置
       const insertionPoint = getInsertionPoint?.()
