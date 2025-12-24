@@ -21,7 +21,6 @@ export function useYjsAutoSave(ydoc: Y.Doc, docId: string, delay = 1000) {
             try {
                 await updateDocumentState(docId, { base64State: docContent })
                 lastSavedState = docContent
-                console.log(`[Yjs] 文档 ${docId} 自动保存成功`)
             } catch (error) {
                 console.error('[Yjs] 自动保存失败:', error)
             }
@@ -45,13 +44,11 @@ export function useYjsAutoSave(ydoc: Y.Doc, docId: string, delay = 1000) {
     // 暂停自动保存
     function pause() {
         isPaused = true
-        console.log(`[Yjs] 文档 ${docId} 自动保存已暂停`)
     }
 
     // 恢复自动保存
     function resume() {
         isPaused = false
-        console.log(`[Yjs] 文档 ${docId} 自动保存已恢复`)
     }
 
     // 手动保存（强制执行，不受暂停状态影响）
@@ -61,23 +58,14 @@ export function useYjsAutoSave(ydoc: Y.Doc, docId: string, delay = 1000) {
             debouncedSave.cancel()
 
             // 获取所有Yjs内容用于调试
-            const ytext = ydoc.getText('content')
-            const currentContent = ytext.toString()
-            console.log(`[Yjs] 文档 ${docId} 当前Yjs内容:`, currentContent)
-            console.log(`[Yjs] 文档 ${docId} Yjs内容长度:`, currentContent.length)
 
             const state = Y.encodeStateAsUpdate(ydoc)
             const docContent = uint8ArrayToBase64(state)
-
-            console.log(`[Yjs] 文档 ${docId} 手动保存开始...`)
-            console.log(`[Yjs] 状态大小: ${state.length}, Base64长度: ${docContent.length}`)
-            console.log(`[Yjs] 编码后的前100字符:`, docContent.substring(0, 100))
 
             const response = await updateDocumentState(docId, { base64State: docContent })
 
             if (response.code === 200) {
                 lastSavedState = docContent
-                console.log(`[Yjs] 文档 ${docId} 手动保存成功`)
                 return true
             } else {
                 console.error(`[Yjs] 文档 ${docId} 手动保存失败:`, response)

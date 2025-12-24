@@ -83,24 +83,19 @@ export function useAIActions(state: Ref<AIState>) {
   }
 
   function addMessage(chatId: string, message: AIMessage) {
-    console.log('[STORE] Adding message:', { chatId, role: message.role, isStreaming: message.isStreaming })
     const chat = state.value.chats.find((c: AIChat) => c.id === chatId)
     if (chat) {
       chat.messages.push(message)
       chat.updatedAt = new Date()
-      console.log('[STORE] Message added, total messages:', chat.messages.length)
     }
   }
 
   function updateStreamingMessage(chatId: string, delta: string) {
-    console.log('[STORE] Updating streaming message:', { chatId, delta })
-    console.log('[STORE] Available chats:', state.value.chats.map(c => ({ id: c.id, messageCount: c.messages.length })))
     const chat = state.value.chats.find((c: AIChat) => c.id === chatId)
     if (chat && chat.messages.length > 0) {
       const lastMessageIndex = chat.messages.length - 1
       const lastMessage = chat.messages[lastMessageIndex]
       if (lastMessage) {
-        console.log('[STORE] Last message before update:', { role: lastMessage.role, isStreaming: lastMessage.isStreaming, contentLength: lastMessage.content.length, id: lastMessage.id })
         if (lastMessage.role === 'assistant' && lastMessage.isStreaming) {
           // Create a new message object to ensure reactivity
           const updatedMessage = {
@@ -110,7 +105,6 @@ export function useAIActions(state: Ref<AIState>) {
           // Direct assignment should work with Vue 3 reactivity
           chat.messages[lastMessageIndex] = updatedMessage
           chat.updatedAt = new Date()
-          console.log('[STORE] Message updated, new content length:', updatedMessage.content.length)
         } else {
           console.log('[STORE] Message not updated - conditions not met')
         }
@@ -121,7 +115,6 @@ export function useAIActions(state: Ref<AIState>) {
   }
 
   function finalizeStreamingMessage(chatId: string) {
-    console.log('[STORE] Finalizing streaming message:', chatId)
     const chat = state.value.chats.find((c: AIChat) => c.id === chatId)
     if (chat && chat.messages.length > 0) {
       const lastMessageIndex = chat.messages.length - 1
@@ -135,7 +128,6 @@ export function useAIActions(state: Ref<AIState>) {
         // Direct assignment should work with Vue 3 reactivity
         chat.messages[lastMessageIndex] = finalizedMessage
         chat.updatedAt = new Date()
-        console.log('[STORE] Message finalized, isStreaming set to false')
       }
     }
   }
@@ -194,7 +186,6 @@ export function useAIActions(state: Ref<AIState>) {
     }
 
     const tempEdit = state.value.temporaryEdit
-    console.log('[acceptTemporaryEdit] Accepting temporary edit:', tempEdit)
 
     const chat = state.value.chats.find((c: AIChat) => c.id === state.value.currentChatId)
     if (chat) {
@@ -208,12 +199,10 @@ export function useAIActions(state: Ref<AIState>) {
 
     // 创建 pendingEdit 操作来应用实际的编辑
     const content = tempEdit.content.trim()
-    console.log('[acceptTemporaryEdit] Content to insert:', content)
 
     if (content) {
       if (tempEdit.mode === 'polish' && tempEdit.originalSelection) {
         // 润色模式：替换操作
-        console.log('[acceptTemporaryEdit] Creating replace operation for polish mode')
         state.value.pendingEdit = {
           type: 'replace',
           documentId: tempEdit.documentId,
@@ -224,7 +213,6 @@ export function useAIActions(state: Ref<AIState>) {
         ;(state.value.pendingEdit as any).originalSelection = tempEdit.originalSelection
       } else {
         // 续写模式：追加操作
-        console.log('[acceptTemporaryEdit] Creating append operation for continue mode')
         state.value.pendingEdit = {
           type: 'append',
           documentId: tempEdit.documentId,
@@ -233,7 +221,6 @@ export function useAIActions(state: Ref<AIState>) {
         // 扩展pendingEdit以包含插入点信息
         ;(state.value.pendingEdit as any).insertionPoint = tempEdit.insertionPoint
       }
-      console.log('[acceptTemporaryEdit] Created pendingEdit:', state.value.pendingEdit)
     } else {
       console.log('[acceptTemporaryEdit] No content to insert')
     }

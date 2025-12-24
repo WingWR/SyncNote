@@ -38,13 +38,11 @@ export function useAIChat() {
   const currentDocumentId = computed(() => aiStore.currentDocumentId)
 
   function sendMessage(content: string, options?: SendMessageOptions) {
-    console.log('[CHAT] Starting sendMessage, currentChatId:', aiStore.currentChatId)
 
     // 如果没有当前对话，创建一个新对话
     let chatId = aiStore.currentChatId
     if (!chatId) {
       chatId = aiStore.createChat()
-      console.log('[CHAT] Created new chat:', chatId)
     } else {
       console.log('[CHAT] Using existing chat:', chatId)
     }
@@ -64,7 +62,6 @@ export function useAIChat() {
       mode: aiStore.mode,
       documentId: effectiveDocumentId
     }
-    console.log('[CHAT] Adding user message to chat:', chatId)
     aiStore.addMessage(chatId, userMessage)
 
     // 设置加载状态和流式输出状态
@@ -88,7 +85,6 @@ export function useAIChat() {
         mode: aiStore.mode,
         documentId: effectiveDocumentId
       }
-      console.log('[CHAT] Adding AI message to chat:', chatId)
       aiStore.addMessage(chatId, aiMessage)
       aiMessageId = aiMessage.id
     }
@@ -139,7 +135,6 @@ export function useAIChat() {
     }
 
     // 发起真正的流式API请求
-    console.log('[CHAT] Initiating streaming response for chat:', chatId)
     initiateStreamingResponse(chatId, content, {
       documentId: effectiveDocumentId,
       context: options?.context
@@ -151,7 +146,6 @@ export function useAIChat() {
     userContent: string,
     { documentId, context }: SendMessageOptions
   ) {
-    console.log('[CHAT] initiateStreamingResponse called with chatId:', chatId)
     chatStream({
       message: userContent,
       modelId: aiStore.currentModel?.id || '',
@@ -160,7 +154,6 @@ export function useAIChat() {
       context
     }, {
       onChunk: (chunk: AIStreamChunk) => {
-        console.log('[COMPOSABLE] Received chunk:', chunk)
         if (chunk.type === 'chunk') {
           const delta = chunk.content
           
@@ -176,10 +169,8 @@ export function useAIChat() {
           }
           
           // 普通聊天模式，更新聊天消息
-          console.log('[COMPOSABLE] Updating streaming message with delta:', delta)
           aiStore.updateStreamingMessage(chatId, delta)
         } else if (chunk.type === 'done') {
-          console.log('[COMPOSABLE] Stream completed')
           aiStore.setStreaming(false)
           
           // 如果是 continue/polish 模式，完成临时编辑

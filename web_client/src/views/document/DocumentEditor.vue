@@ -234,9 +234,7 @@ function handleKeyDown(event: KeyboardEvent) {
 
     // 直接使用Yjs进行保存，解耦合保存逻辑
     manualSave().then((success) => {
-      if (success) {
-        console.log('[ManualSave] Manual save completed successfully')
-      } else {
+      if (!success) {
         console.error('[ManualSave] Manual save failed')
       }
     })
@@ -503,7 +501,6 @@ function getTextEditorHook() {
 
 // 处理AI临时编辑接受
 function handleAITempEditAccepted() {
-  console.log('[DocumentEditor] Handling AI temp edit accepted')
   aiStore.acceptTemporaryEdit()
 }
 
