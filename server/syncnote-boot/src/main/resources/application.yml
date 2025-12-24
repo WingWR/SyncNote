@@ -73,7 +73,7 @@ syncnote:
       # Mock提供者（默认启用）
       mock:
         # Mock提供者是否启用
-        enabled: ${SYNCNOTE_AI_MOCK_ENABLED:true}
+        enabled: ${SYNCNOTE_AI_MOCK_ENABLED:false}
         # Mock提供者模型ID
         modelId: ${SYNCNOTE_AI_MOCK_MODEL_ID:mock-model}
       deepseek_chat:
@@ -81,11 +81,11 @@ syncnote:
         api-key: ${SYNCNOTE_AI_DEEPSEEK_API_KEY:sk-90ac868504e94e5aaec7016bb4a1b4c6}
         endpoint: ${SYNCNOTE_AI_DEEPSEEK_ENDPOINT:https://api.deepseek.com/v1}
         modelId: ${SYNCNOTE_AI_DEEPSEEK_MODEL_ID:deepseek-chat}
-      deepseek_resoner:
+      deepseek_reasoner:
         enabled: ${SYNCNOTE_AI_DEEPSEEK_ENABLED:true}
         api-key: ${SYNCNOTE_AI_DEEPSEEK_API_KEY:sk-90ac868504e94e5aaec7016bb4a1b4c6}
         endpoint: ${SYNCNOTE_AI_DEEPSEEK_ENDPOINT:https://api.deepseek.com/v1}
-        modelId: ${SYNCNOTE_AI_DEEPSEEK_MODEL_ID:deepseek-resoner}
+        modelId: ${SYNCNOTE_AI_DEEPSEEK_MODEL_ID:deepseek-reasoner}
       # Qwen Provider (通义千问)
       qwen:
         enabled: ${SYNCNOTE_AI_QWEN_ENABLED:true}

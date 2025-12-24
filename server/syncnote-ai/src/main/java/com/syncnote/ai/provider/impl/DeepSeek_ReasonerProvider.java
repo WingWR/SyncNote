@@ -14,26 +14,26 @@ import org.springframework.beans.factory.annotation.Value;
  * DeepSeek provider implementation (OpenAI-compatible)
  */
 @Component
-public class DeepSeek_ResonerProvider implements IAIProvider {
+public class DeepSeek_ReasonerProvider implements IAIProvider {
 
 
-    private static final Logger logger = LoggerFactory.getLogger(DeepSeek_ResonerProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeepSeek_ReasonerProvider.class);
 
     private final String modelId;
     private final ChatLanguageModel chatModel;
     private final boolean enabled;
 
-    public DeepSeek_ResonerProvider(AIProperties aiProperties) {
-        AIProperties.ProviderConfig config = aiProperties.getProviders().get("deepseek");
+    public DeepSeek_ReasonerProvider(AIProperties aiProperties) {
+        AIProperties.ProviderConfig config = aiProperties.getProviders().get("deepseek_reasoner");
         if (config == null) {
-            this.modelId = "deepseek-resoner";
+            this.modelId = "deepseek-reasoner";
             this.enabled = false;
             this.chatModel = null;
             logger.warn("DeepSeek provider config not found; provider disabled");
             return;
         }
 
-        this.modelId = config.getModelId() != null ? config.getModelId() : "deepseek-resoner";
+        this.modelId = config.getModelId() != null ? config.getModelId() : "deepseek-reasoner";
         this.enabled = config.isEnabled()
                 && config.getApiKey() != null
                 && !config.getApiKey().isEmpty();
