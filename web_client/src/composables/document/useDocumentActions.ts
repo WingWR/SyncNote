@@ -34,8 +34,9 @@ export function useDocumentActions() {
       } else if (error.response) {
         errorMessage = `服务器错误 (${error.response.status})`
       }
+      console.error('加载文档失败:', errorMessage, error)
 
-      
+
       // 不重新抛出错误，保持 composable 层稳定
     } finally {
       documentStore.setLoading(false)
@@ -60,6 +61,7 @@ export function useDocumentActions() {
       if (error.code === 'ECONNABORTED') {
         errorMessage = '网络连接超时，删除操作可能未完成'
       }
+      console.error('删除文档失败:', errorMessage, error)
     }
   }
 
@@ -81,6 +83,7 @@ export function useDocumentActions() {
       if (error.code === 'ECONNABORTED') {
         errorMessage = '网络连接超时，永久删除操作可能未完成'
       }
+      console.error('永久删除失败:', errorMessage, error)
     }
   }
 
