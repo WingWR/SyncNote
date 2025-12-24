@@ -122,7 +122,6 @@ const handleAccept = async () => {
 
   accepting.value = true
   try {
-    console.log('[AITemporaryEditControls] Accept button clicked')
     // 通知外部组件操作成功，实际的编辑操作由 useAIEditBridge 处理
     props.onAccepted?.()
   } catch (error) {
