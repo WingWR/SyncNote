@@ -21,6 +21,7 @@ syncnote:
         enabled: ${SYNCNOTE_AI_MOCK_ENABLED:false}
         # Mock提供者模型ID
         model-id: ${SYNCNOTE_AI_MOCK_MODEL_ID:mock-model}
+
       # Qwen Provider (通义千问)
       qwen:
         enabled: ${SYNCNOTE_AI_QWEN_ENABLED:true}
@@ -35,4 +36,3 @@ syncnote:
         api-key: ${SYNCNOTE_AI_KIMI_API_KEY:sk-7d351140e99c4744a37d73b67bfe7592}
         endpoint: ${SYNCNOTE_AI_KIMI_ENDPOINT:https://dashscope.aliyuncs.com/compatible-mode/v1}
         model-id: ${SYNCNOTE_AI_KIMI_MODEL_ID:kimi-k2-thinking}
-        # 可选模型: moonshot-v1-8k, moonshot-v1-32k, moonshot-v1-128k
