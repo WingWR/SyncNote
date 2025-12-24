@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
  * DeepSeek provider implementation (OpenAI-compatible)
  */
 @Component
-public class DeepSeekProvider implements IAIProvider {
+public class DeepSeek_ChatProvider implements IAIProvider {
 
 
     private static final Logger logger = LoggerFactory.getLogger(DeepSeekProvider.class);
@@ -23,7 +23,7 @@ public class DeepSeekProvider implements IAIProvider {
     private final ChatLanguageModel chatModel;
     private final boolean enabled;
 
-    public DeepSeekProvider(AIProperties aiProperties) {
+    public DeepSeek_ChatProvider(AIProperties aiProperties) {
         AIProperties.ProviderConfig config = aiProperties.getProviders().get("deepseek");
         if (config == null) {
             this.modelId = "deepseek-chat";
