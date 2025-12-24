@@ -21,7 +21,7 @@
             </h3>
             <div class="mt-2 text-sm text-red-700">
               <ul class="list-disc pl-5 space-y-1">
-                <li v-for="error in documentStore.errors.filter(e => e.type === 'load')" :key="error.timestamp">
+                <li v-for="error in documentStore.errors.filter(e => e.type === 'load')" :key="String(error.timestamp)">
                   {{ error.message }}
                 </li>
               </ul>
@@ -61,7 +61,7 @@ import { useDocumentActions } from '../../composables/document/useDocumentAction
 import { useUserStore } from '../../stores/user'
 
 const { documentStore, currentDocId, openDocument, getFileTypeIcon } = useWorkspace()
-const { loading, loadDocuments } = useDocumentActions()
+const { loadDocuments } = useDocumentActions()
 const userStore = useUserStore()
 
 // 重新计算权限分组，基于所有者关系
