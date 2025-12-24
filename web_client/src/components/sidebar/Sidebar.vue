@@ -48,8 +48,8 @@
     <main
       :class="['flex-1 overflow-hidden transition-all duration-300', sidebarStore.activePanel ? 'ml-80' : '']"
     >
-      <router-view v-slot="{ Component }">
-        <component :is="Component" />
+      <router-view v-slot="{ Component, route }">
+        <component :is="Component" :key="route.fullPath" />
       </router-view>
     </main>
   </div>
@@ -84,10 +84,13 @@ function getPanelZIndex(panel: string | null): number {
   }
 }
 
-// 点击容器处理函数 - 点击侧边栏以外的地方关闭侧边栏
+// 点击容器处理函数 - 双击侧边栏以外的地方关闭侧边栏（单击不再关闭，避免影响编辑体验）
 function handleContainerClick(event: MouseEvent) {
   // 如果侧边栏没有打开，直接返回
   if (!sidebarStore.activePanel) return
+
+  // 只有双击（detail >= 2）才触发关闭逻辑
+  if (event.detail < 2) return
 
   // 获取点击的目标元素
   const target = event.target as HTMLElement

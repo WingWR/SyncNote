@@ -1,54 +1,27 @@
 <template>
   <div class="h-full flex flex-col bg-white">
-    <div class="flex items-center justify-between px-6 py-3 border-b border-gray-200">
-      <div class="flex items-center gap-4">
-        <h2 class="text-lg font-semibold text-gray-900">
-          {{ documentStore.currentDocument?.fileName || '未命名文档' }}
-        </h2>
-        <span class="text-sm text-gray-500 uppercase">
-          {{ documentStore.currentDocument?.fileType }}
-        </span>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2">
-          <Users :size="18" class="text-gray-500" />
-          <span class="text-sm text-gray-700">
-            {{ onlineUsers.length }}
-          </span>
-          <div class="flex -space-x-2">
-            <div v-for="(user, index) in onlineUsers.slice(0, 3)" :key="index"
-              class="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold"
-              :style="{ backgroundColor: user.color || '#3b82f6' }" :title="user.name">
-              {{ user.name.charAt(0).toUpperCase() }}
-            </div>
-          </div>
-        </div>
-
-        <button @click="showShareDialog = true"
-          class="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1">
-          <Share2 :size="16" /> 分享
-        </button>
-
-        <button @click="showCollaboratorsDialog = true"
-          class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          管理协作者
-        </button>
-      </div>
-    </div>
+    <!-- 文档标题和工具栏区域 -->
+    <EditorToolbar
+      :max-visible-collaborators="5"
+      :online-users="onlineUsers"
+      @show-add-dialog="showCollaboratorsDialog = true"
+      @show-share-dialog="showShareDialog = true"
+      @ai-continue="handleAIContinue"
+      @ai-polish="handleAIPolish"
+    />
 
     <!-- 编辑器区域 -->
-    <div class="flex-1 overflow-auto p-6">
-      <!-- TipTap编辑器（用于.md格式） -->
-      <div v-if="documentStore.currentDocument?.fileType === 'md'" class="prose max-w-none focus:outline-none">
-        <editor-content :editor="editor" />
-      </div>
+      <div class="flex-1 overflow-auto p-6">
+        <!-- TipTap编辑器（用于.md格式） -->
+        <div v-if="documentStore.currentDocument?.fileType === 'md'" class="prose max-w-none focus:outline-none">
+          <editor-content :editor="editor" />
+        </div>
 
-      <!-- 文本编辑器（用于.txt格式） -->
-      <textarea v-else-if="documentStore.currentDocument?.fileType === 'txt'" v-model="textContent"
-        @input="handleTextInput" class="w-full h-full border-none outline-none resize-none font-mono text-sm"
-        placeholder="开始输入...">
-      </textarea>
+        <!-- 文本编辑器（用于.txt格式） -->
+        <textarea v-else-if="documentStore.currentDocument?.fileType === 'txt'" ref="textareaRef" v-model="textContent"
+          @input="handleTextInput" class="w-full h-full border-none outline-none resize-none font-mono text-sm"
+          placeholder="开始输入...">
+        </textarea>
 
       <!-- 其他格式提示 -->
       <div v-else class="flex items-center justify-center h-full text-gray-400">
@@ -70,7 +43,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, shallowRef, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { Users, Share2 } from 'lucide-vue-next'
 import { useDocumentStore } from '../../stores/document'
 import { useUserStore } from '../../stores/user'
 import { getDocument, getCollaborators } from '../../api/document'
@@ -82,13 +54,18 @@ import { Editor, EditorContent } from '@tiptap/vue-3'
 import { useCollaborativeEditor } from './composables/useCollaborativeEditor'
 import { useYMarkdownEditor } from './composables/useYMarkdownEditor'
 import { useYTextEditor } from './composables/useYTextEditor'
+import { useAIEditBridge } from './composables/useAIEditBridge'
+import { useAIStore } from '../../stores/ai'
+import { useAIChat } from '../../composables/ai/useAIChat'
 import CollaboratorsManagementDialog from './components/CollaboratorsManagementDialog.vue'
 import ShareLink from '../../components/document/ShareLink.vue'
+import EditorToolbar from './components/EditorToolbar.vue'
 
 const route = useRoute()
 const docId = ref(route.params.id as string)
 const documentStore = useDocumentStore()
 const userStore = useUserStore()
+const aiStore = useAIStore()
 
 // 1. 初始化协作底座 (Y.Doc 和 WebSocket)
 const { ydoc, provider, loadHistoryAndConnect } = useCollaborativeEditor(docId.value)
@@ -101,6 +78,9 @@ const onlineUsers = ref<any[]>([])
 
 const showShareDialog = ref(false)
 const showCollaboratorsDialog = ref(false)
+
+// 引用编辑器元素
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
 // 3. 核心功能：初始化对应的编辑器逻辑
 let currentMdHook: any = null
@@ -131,11 +111,42 @@ async function initEditor() {
     currentMdHook = useYMarkdownEditor(docId.value, ydoc, provider)
     await currentMdHook.init()
     editor.value = currentMdHook.editor.value
+
+    if (editor.value) {
+      useAIEditBridge({
+        docId: docId.value,
+        tiptapEditor: editor.value
+      })
+
+      // 注册编辑器回调到 AI store
+      aiStore.setEditorCallbacks({
+        getInsertionPoint: () => getInsertionPoint(),
+        focusEditor: () => focusEditor()
+      })
+    }
   } else if (type === 'txt') {
     // txt 模式继续使用 content 字段 (Text 类型)
     currentTxtHook = useYTextEditor(ydoc, docId.value)
     textContent.value = currentTxtHook.textContent.value
     handleTextInput.value = currentTxtHook.handleTextInput
+
+    useAIEditBridge({
+      docId: docId.value,
+      textEditorHook: {
+        textContent: currentTxtHook.textContent,
+        insertAtCursor: currentTxtHook.insertAtCursor,
+        replaceSelection: currentTxtHook.replaceSelection,
+        getCursorPosition: currentTxtHook.getCursorPosition,
+        focus: currentTxtHook.focus,
+        renderTemporaryEdit: currentTxtHook.renderTemporaryEdit
+      }
+    })
+
+    // 注册编辑器回调到 AI store
+    aiStore.setEditorCallbacks({
+      getInsertionPoint: () => getInsertionPoint(),
+      focusEditor: () => focusEditor()
+    })
   }
 }
 
@@ -172,22 +183,246 @@ watch(() => currentTxtHook?.textContent.value, (newVal) => {
   if (newVal !== undefined) textContent.value = newVal
 })
 
-// 监听路由参数变化，当文档ID变化时重新加载文档
-watch(() => route.params.id, async (newId) => {
-  if (newId && newId !== docId.value) {
-    // 路由变化时，最简单有效的方法是刷新页面或手动重置整个协作实例
-    // 这里简单处理：刷新页面以彻底清理旧的 Yjs 实例
-    window.location.reload();
+// 手动保存文档
+async function manualSave() {
+  console.log('[ManualSave] Starting manual save...')
+
+  // 确保文本内容同步到Yjs
+  if (documentStore.currentDocument?.fileType === 'txt' && currentTxtHook) {
+    console.log('[ManualSave] Ensuring text content is synced to Yjs')
+    currentTxtHook.handleTextInput()
   }
-})
+
+  // 根据文档类型调用对应的保存方法
+  const type = documentStore.currentDocument?.fileType
+  if (type === 'md' && currentMdHook) {
+    console.log('[ManualSave] Saving markdown document')
+    try {
+      const success = await currentMdHook.manualSave()
+      console.log('[ManualSave] Markdown manual save result:', success)
+      return success
+    } catch (error) {
+      console.error('[ManualSave] Markdown manual save failed:', error)
+      return false
+    }
+  } else if (type === 'txt' && currentTxtHook) {
+    console.log('[ManualSave] Saving text document')
+    try {
+      const success = await currentTxtHook.manualSave()
+      console.log('[ManualSave] Text manual save result:', success)
+      return success
+    } catch (error) {
+      console.error('[ManualSave] Text manual save failed:', error)
+      return false
+    }
+  } else {
+    console.warn('[ManualSave] No suitable hook found for manual save', { type, hasMdHook: !!currentMdHook, hasTxtHook: !!currentTxtHook })
+    return false
+  }
+}
+
+// 键盘事件处理函数
+function handleKeyDown(event: KeyboardEvent) {
+  // Ctrl+S 或 Cmd+S 保存文档
+  if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+    event.preventDefault() // 阻止浏览器默认的保存行为
+
+    console.log('[ManualSave] Ctrl+S pressed, attempting to save')
+    console.log('[ManualSave] ydoc available:', !!ydoc)
+    console.log('[ManualSave] docId:', docId.value)
+
+    // 直接使用Yjs进行保存，解耦合保存逻辑
+    manualSave().then((success) => {
+      if (success) {
+        console.log('[ManualSave] Manual save completed successfully')
+      } else {
+        console.error('[ManualSave] Manual save failed')
+      }
+    })
+  }
+}
 
 onMounted(() => {
+  // 添加键盘事件监听
+  document.addEventListener('keydown', handleKeyDown)
+
+  // 清理可能残留的AI临时编辑状态，确保编辑器从干净状态开始
+  aiStore.setTemporaryEdit(null)
+
+  // 告知 AI 模块当前文档 ID，便于续写/润色时携带上下文
+  aiStore.setCurrentDocumentId(docId.value)
   loadDocument()
 })
 
 onUnmounted(() => {
+  // 移除键盘事件监听
+  document.removeEventListener('keydown', handleKeyDown)
+
   if (editor.value) editor.value.destroy()
+  aiStore.setCurrentDocumentId(null)
+  aiStore.setEditorCallbacks(null) // 清理编辑器回调
 })
+
+// 获取当前选中范围（用于保存原始选择）
+function getOriginalSelection(): { start: number; end: number } | null {
+  const type = documentStore.currentDocument?.fileType
+
+  if (type === 'md' && editor.value) {
+    // TipTap 编辑器
+    const { from, to } = editor.value.state.selection
+    return { start: from, end: to }
+  } else if (type === 'txt' && textareaRef.value) {
+    // textarea 编辑器
+    const start = textareaRef.value.selectionStart
+    const end = textareaRef.value.selectionEnd
+    return { start, end }
+  }
+
+  return null
+}
+
+// 获取当前插入点位置（用于 AI 续写/润色）
+function getInsertionPoint(): { from: number; to: number } | { index: number } | null {
+  const type = documentStore.currentDocument?.fileType
+  const currentMode = aiStore.mode
+
+  if (type === 'md' && editor.value) {
+    // TipTap 编辑器
+    const { from, to } = editor.value.state.selection
+    return { from, to }
+  } else if (type === 'txt' && textareaRef.value) {
+    // textarea 编辑器
+    const start = textareaRef.value.selectionStart
+    const end = textareaRef.value.selectionEnd
+
+    if (currentMode === 'polish') {
+      // 润色模式：返回选中范围，用于替换
+      return { index: start }
+    } else {
+      // 续写或其他模式：返回结束位置
+      return { index: end > start ? end : start }
+    }
+  }
+
+  return null
+}
+
+// 聚焦到文档编辑器
+function focusEditor(): void {
+  const type = documentStore.currentDocument?.fileType
+
+  if (type === 'md' && editor.value) {
+    editor.value.commands.focus()
+  } else if (type === 'txt' && textareaRef.value) {
+    textareaRef.value.focus()
+  }
+}
+
+// 获取当前选中的文本
+function getSelectedText(): string {
+  const type = documentStore.currentDocument?.fileType
+
+  if (type === 'md' && editor.value) {
+    // TipTap 编辑器
+    const { from, to } = editor.value.state.selection
+    if (from !== to) {
+      return editor.value.state.doc.textBetween(from, to, ' ')
+    }
+  } else if (type === 'txt' && textareaRef.value) {
+    // textarea 编辑器
+    const start = textareaRef.value.selectionStart
+    const end = textareaRef.value.selectionEnd
+    if (start !== end) {
+      return textContent.value.slice(start, end)
+    }
+  }
+
+  return ''
+}
+
+// 处理 AI 续写
+function handleAIContinue() {
+  const selectedText = getSelectedText()
+  if (!selectedText) {
+    alert('请先在文档中选择需要续写的文本')
+    return
+  }
+
+  // 保存原始选中范围（用于续写）
+  const originalSelection = getOriginalSelection()
+  if (!originalSelection) {
+    alert('无法获取选中范围')
+    return
+  }
+
+  // 单开一段落：在选中内容末尾插入换行符
+  if (documentStore.currentDocument?.fileType === 'md') {
+    // TipTap编辑器
+    if (editor.value) {
+      editor.value.chain()
+        .setTextSelection({ from: originalSelection.end, to: originalSelection.end })
+        .insertContent('\n')
+        .run()
+    }
+  } else {
+    // textarea编辑器
+    const textarea = document.querySelector('textarea')
+    if (textarea) {
+      const end = textarea.selectionEnd
+      const value = textarea.value
+      textarea.value = value.substring(0, end) + '\n' + value.substring(end)
+      textarea.selectionStart = textarea.selectionEnd = end + 1
+    }
+  }
+
+  // 更新插入点为新段落的开始位置
+  const newInsertionPoint = originalSelection.end + 1
+
+  const { sendMessage } = useAIChat()
+  aiStore.setMode('continue')
+
+  sendMessage(`请续写以下内容：${selectedText}`, {
+    documentId: docId.value,
+    context: selectedText,
+    getInsertionPoint: () => {
+      // 根据编辑器类型返回不同的插入点格式
+      if (documentStore.currentDocument?.fileType === 'md') {
+        return { from: newInsertionPoint, to: newInsertionPoint } // TipTap格式
+      } else {
+        return { index: newInsertionPoint } // textarea格式
+      }
+    },
+    originalSelection: { index: originalSelection.start, endIndex: originalSelection.end }, // 保存原始选中范围
+    focusEditor: () => focusEditor()
+  })
+}
+
+// 处理 AI 润色
+function handleAIPolish() {
+  const selectedText = getSelectedText()
+  if (!selectedText) {
+    alert('请先在文档中选择需要润色的文本')
+    return
+  }
+
+  // 保存原始选中范围（用于润色替换）
+  const originalSelection = getOriginalSelection()
+  if (!originalSelection) {
+    alert('无法获取选中范围')
+    return
+  }
+
+  const { sendMessage } = useAIChat()
+  aiStore.setMode('polish')
+
+  sendMessage(`请润色以下内容，并在润色文本的最后加上换行：${selectedText}`, {
+    documentId: docId.value,
+    context: selectedText,
+    getInsertionPoint: () => ({ index: originalSelection.start }), // 润色时在选中开始位置插入
+    originalSelection: { index: originalSelection.start, endIndex: originalSelection.end }, // 保存完整选中范围
+    focusEditor: () => focusEditor()
+  })
+}
 
 // 刷新协作者
 async function refreshCollaborators() {
@@ -251,5 +486,13 @@ async function refreshCollaborators() {
 .ProseMirror pre code {
   background-color: transparent;
   padding: 0;
+}
+
+/* AI临时文本样式 */
+.ProseMirror .ai-temporary-text {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  border-radius: 2px;
+  padding: 2px 0;
 }
 </style>
