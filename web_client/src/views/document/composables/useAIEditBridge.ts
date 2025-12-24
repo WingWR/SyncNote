@@ -90,41 +90,32 @@ export function useAIEditBridge(options: UseAIEditBridgeOptions) {
   watch(
     () => aiStore.pendingEdit,
     (op: AIEditOperation | null) => {
-      console.log('[useAIEditBridge] Pending edit changed:', op)
       if (!op) return
       if (op.documentId !== options.docId) {
-        console.log('[useAIEditBridge] Document ID mismatch:', op.documentId, 'vs', options.docId)
         return
       }
 
       const { type, replacementText } = op
       const extendedOp = op as any // 扩展操作，包含原始选区信息
-      console.log('[useAIEditBridge] Processing pending edit:', type, replacementText)
 
       // Markdown: TipTap 编辑器
       if (options.tiptapEditor) {
-        console.log('[useAIEditBridge] Processing with TipTap editor')
         const editor = options.tiptapEditor
 
         if (type === 'append') {
-          console.log('[useAIEditBridge] Append operation')
           if (extendedOp.insertionPoint && 'from' in extendedOp.insertionPoint) {
             // 指定位置插入（续写模式）
-            console.log('[useAIEditBridge] Inserting at specific position:', extendedOp.insertionPoint.from)
             editor.chain().focus()
               .setTextSelection({ from: extendedOp.insertionPoint.from, to: extendedOp.insertionPoint.from })
               .insertContent(replacementText)
               .run()
           } else {
             // 默认追加
-            console.log('[useAIEditBridge] Default append')
             editor.chain().focus().insertContent(replacementText).run()
           }
         } else if (type === 'replace') {
-          console.log('[useAIEditBridge] Replace operation')
           if (extendedOp.originalSelection && 'from' in extendedOp.originalSelection && 'to' in extendedOp.originalSelection) {
             // 替换指定范围（润色模式）
-            console.log('[useAIEditBridge] Replacing selection:', extendedOp.originalSelection)
             editor.chain().focus()
               .setTextSelection({ from: extendedOp.originalSelection.from, to: extendedOp.originalSelection.to })
               .deleteSelection()
@@ -132,7 +123,6 @@ export function useAIEditBridge(options: UseAIEditBridgeOptions) {
               .run()
           } else {
             // 默认替换当前选区
-            console.log('[useAIEditBridge] Default replace')
             editor
               .chain()
               .focus()
@@ -144,12 +134,9 @@ export function useAIEditBridge(options: UseAIEditBridgeOptions) {
 
       // 纯文本: textarea 编辑器
       if (options.textEditorHook) {
-        console.log('[useAIEditBridge] Processing with textarea editor')
         if (type === 'append') {
-          console.log('[useAIEditBridge] Append operation for textarea')
           if (extendedOp.insertionPoint && 'index' in extendedOp.insertionPoint) {
             // 在指定位置插入（续写模式）
-            console.log('[useAIEditBridge] Inserting at specific position:', extendedOp.insertionPoint.index)
             const textarea = document.querySelector('textarea') as HTMLTextAreaElement
             if (textarea) {
               const insertPos = extendedOp.insertionPoint.index
@@ -162,14 +149,11 @@ export function useAIEditBridge(options: UseAIEditBridgeOptions) {
             }
           } else {
             // 默认在光标位置插入
-            console.log('[useAIEditBridge] Default append for textarea')
             options.textEditorHook.insertAtCursor(replacementText)
           }
         } else if (type === 'replace') {
-          console.log('[useAIEditBridge] Replace operation for textarea')
           if (extendedOp.originalSelection && 'index' in extendedOp.originalSelection && 'endIndex' in extendedOp.originalSelection) {
             // 替换指定范围（润色模式）
-            console.log('[useAIEditBridge] Replacing selection:', extendedOp.originalSelection)
             const start = extendedOp.originalSelection.index
             const end = extendedOp.originalSelection.endIndex
             const before = options.textEditorHook.textContent.value.slice(0, start)
@@ -183,7 +167,6 @@ export function useAIEditBridge(options: UseAIEditBridgeOptions) {
             }
           } else {
             // 默认替换当前选区
-            console.log('[useAIEditBridge] Default replace for textarea')
             options.textEditorHook.replaceSelection(replacementText)
           }
         }
