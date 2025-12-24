@@ -1,10 +1,12 @@
 // 前端文件编辑部分行为定义
-import type { Document, DocumentCollaborator } from './types'
+import type { Document, DocumentCollaborator, DocumentError } from './types'
 
 export function useDocumentActions(state: {
   documents: { value: Document[] }
   currentDocument: { value: Document | null }
   collaborators: { value: DocumentCollaborator[] }
+  errors: { value: DocumentError[] }
+  isLoading: { value: boolean }
 }) {
   function setDocuments(docs: Document[]) {
     state.documents.value = docs
@@ -40,6 +42,32 @@ export function useDocumentActions(state: {
     }
   }
 
+  // 错误状态管理 - 解耦错误处理逻辑
+  function addError(error: Omit<DocumentError, 'timestamp'>) {
+    const errorObj: DocumentError = {
+      ...error,
+      timestamp: new Date()
+    }
+    state.errors.value.push(errorObj)
+
+    // 只保留最近10个错误
+    if (state.errors.value.length > 10) {
+      state.errors.value = state.errors.value.slice(-10)
+    }
+  }
+
+  function clearErrors() {
+    state.errors.value = []
+  }
+
+  function clearError(type: DocumentError['type']) {
+    state.errors.value = state.errors.value.filter(e => e.type !== type)
+  }
+
+  function setLoading(loading: boolean) {
+    state.isLoading.value = loading
+  }
+
   return {
     setDocuments,
     setCurrentDocument,
@@ -47,6 +75,11 @@ export function useDocumentActions(state: {
     addDocument,
     updateDocument,
     removeDocument,
-    restoreDocument
+    restoreDocument,
+    // 错误处理方法
+    addError,
+    clearErrors,
+    clearError,
+    setLoading
   }
 }

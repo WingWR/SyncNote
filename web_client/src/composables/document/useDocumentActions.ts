@@ -18,17 +18,38 @@ export function useDocumentActions() {
    * 加载文档列表
    */
   const loadDocuments = async (showTrash: boolean = false) => {
-    loading.value = true
+    documentStore.setLoading(true)
+    documentStore.clearError('load') // 清除之前的加载错误
+
     try {
       const response = showTrash ? await getTrashDocuments() : await getDocuments()
       if (response.code === 200) {
         documentStore.setDocuments(response.data)
+        documentStore.clearError('load') // 清除加载错误
+      } else {
+        documentStore.addError({
+          type: 'load',
+          message: response.message || '加载文档失败'
+        })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('加载文档失败:', error)
-      throw error
+
+      let errorMessage = '加载文档失败'
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = '网络连接超时，请检查网络连接或稍后重试'
+      } else if (error.response) {
+        errorMessage = `服务器错误 (${error.response.status})`
+      }
+
+      documentStore.addError({
+        type: 'load',
+        message: errorMessage
+      })
+
+      // 不重新抛出错误，保持 composable 层稳定
     } finally {
-      loading.value = false
+      documentStore.setLoading(false)
     }
   }
 
@@ -38,16 +59,31 @@ export function useDocumentActions() {
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除这个文档吗？')) return
 
+    documentStore.clearError('delete')
+
     try {
       const response = await deleteDocument(id)
       if (response.code === 200) {
         documentStore.removeDocument(id)
+        documentStore.clearError('delete')
       } else {
-        alert(response.message || '删除失败')
+        documentStore.addError({
+          type: 'delete',
+          message: response.message || '删除文档失败'
+        })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('删除文档失败:', error)
-      alert('删除失败')
+
+      let errorMessage = '删除文档失败'
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = '网络连接超时，删除操作可能未完成'
+      }
+
+      documentStore.addError({
+        type: 'delete',
+        message: errorMessage
+      })
     }
   }
 
@@ -58,16 +94,31 @@ export function useDocumentActions() {
   const handlePermanentDelete = async (id: string) => {
     if (!confirm('确定要永久删除这个文档吗？此操作不可恢复！')) return
 
+    documentStore.clearError('delete')
+
     try {
       const response = await permanentDeleteDocument(id)
       if (response.code === 200) {
         documentStore.removeDocument(id)
+        documentStore.clearError('delete')
       } else {
-        alert(response.message || '永久删除失败')
+        documentStore.addError({
+          type: 'delete',
+          message: response.message || '永久删除失败'
+        })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('永久删除文档失败:', error)
-      alert('永久删除失败')
+
+      let errorMessage = '永久删除失败'
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = '网络连接超时，永久删除操作可能未完成'
+      }
+
+      documentStore.addError({
+        type: 'delete',
+        message: errorMessage
+      })
     }
   }
 

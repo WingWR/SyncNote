@@ -27,6 +27,11 @@ export const useAIStore = defineStore('ai', () => {
       return state.value.chats.find(chat => chat.id === state.value.currentChatId) || null
     }),
 
+    currentDocumentId: computed(() => state.value.currentDocumentId),
+    pendingEdit: computed(() => state.value.pendingEdit),
+    temporaryEdit: computed(() => state.value.temporaryEdit),
+    errors: computed(() => state.value.errors),
+
     // Actions
     ...actions
   }
