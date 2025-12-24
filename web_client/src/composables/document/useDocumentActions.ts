@@ -35,6 +35,7 @@ export function useDocumentActions() {
         errorMessage = `服务器错误 (${error.response.status})`
       }
 
+      
       // 不重新抛出错误，保持 composable 层稳定
     } finally {
       documentStore.setLoading(false)
