@@ -1,0 +1,49 @@
+version: '3.8'
+
+# Production docker compose (external DB assumed).
+# This compose runs only the application and frontend. It WILL NOT create or modify your existing database.
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: syncnote-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.prod
+    environment:
+      # Ensure the app uses production profile and does NOT initialize DB schema
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=never
+    healthcheck:
+      test: ["CMD-SHELL","curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - syncnote-net
+
+  web:
+    build:
+      context: ./web_client
+      dockerfile: Dockerfile
+    container_name: syncnote-frontend
+    restart: always
+    ports:
+      - "80:80"
+    env_file:
+      - .env.prod
+    depends_on:
+      - backend
+    networks:
+      - syncnote-net
+
+# Note: db/redis/minio are expected to be external services managed separately in production.
+# If you want to run them via Docker Compose, add them here or in another compose file, but
+# be careful not to point to the same production DB that already contains data.
+
+networks:
+  syncnote-net:
+    driver: bridge

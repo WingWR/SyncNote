@@ -4,3 +4,10 @@ storage:
     accessKey: ${OSS_ACCESS_KEY}              # 从环境变量读取（推荐）
     secretKey: ${OSS_SECRET_KEY}
     bucket: syncnote-documents                 # Bucket 名称（开发和生产环境可统一使用相同名称）
+
+# Production safety: do NOT auto-run SQL init against production DB
+spring:
+  sql:
+    init:
+      mode: never
+# You may still provide datasource via env vars (SPRING_DATASOURCE_*) or external config management

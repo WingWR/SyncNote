@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: syncnote-backend:latest
+    container_name: syncnote-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # Example DB vars (adjust for your deployment)
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/syncnote?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: changeme
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD-SHELL","curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  web:
+    build:
+      context: ./web_client
+      dockerfile: Dockerfile
+    image: syncnote-frontend:latest
+    container_name: syncnote-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    environment:
+      VITE_API_BASE_URL: "http://localhost:8080/api"
+      VITE_WS_URL: "ws://localhost/ws"
+
+  db:
+    image: mysql:8.0
+    container_name: syncnote-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: changeme
+      MYSQL_DATABASE: syncnote
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
+
+networks:
+  default:
+    driver: bridge
